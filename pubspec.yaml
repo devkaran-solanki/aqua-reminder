@@ -1,0 +1,53 @@
+name: aqua_reminder
+description: "Aqua Reminder - A beautiful daily hydration tracker."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  animated_flip_counter: ^0.3.4
+  fl_chart: ^1.2.0
+  flutter:
+    sdk: flutter
+  flutter_local_notifications: ^21.0.0
+  flutter_svg: ^2.2.4
+  flutter_timezone: ^5.0.2
+  google_fonts: ^8.0.2
+  intl: ^0.20.2
+  path: ^1.9.1
+  path_provider: ^2.1.5
+  provider: ^6.1.5+1
+  shared_preferences: ^2.5.5
+  sqflite: ^2.4.2+1
+  timezone: ^0.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#0A0E21"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
+  remove_alpha_ios: true
+  min_sdk_android: 21
+
+flutter_native_splash:
+  background_image: "assets/images/splash_background.png"
+  image: "assets/images/app_icon.png"
+  android_12:
+    image: "assets/images/app_icon.png"
+    icon_background_color: "#0A0E21"
+    background_image: "assets/images/splash_background.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
