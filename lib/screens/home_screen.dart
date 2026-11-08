@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:animated_flip_counter/animated_flip_counter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../providers/water_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/circular_progress.dart';
 import '../widgets/water_size_selector.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -19,61 +21,90 @@ class HomeScreen extends StatelessWidget {
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // App Bar
+              // Top App Bar / Profile & Streak Header
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
                         children: [
-                          Text(
-                            _getGreeting(provider),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w400,
+                          // Squircle App Logo Housing
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: AppColors.cardElevated,
+                              borderRadius: BorderRadius.circular(13),
+                              border: Border.all(
+                                color: AppColors.borderSubtle,
+                                width: 1.0,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.asset(
+                                'assets/images/app_icon.png',
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Hi, ${provider.profile.name.isNotEmpty ? provider.profile.name : 'Hydrator'}',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                              letterSpacing: -0.5,
-                            ),
+                          const SizedBox(width: 14),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _getGreeting(provider),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                provider.profile.name.isNotEmpty
+                                    ? provider.profile.name
+                                    : 'Hydrator',
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      // Streak badge
+                      // Streak badge (Matches 🔥 streak pill in screenshot)
                       if (provider.currentStreak > 0)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
-                            vertical: 8,
+                            vertical: 7,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.warning.withValues(alpha: 0.12),
+                            color: AppColors.cardElevated,
                             borderRadius: BorderRadius.circular(AppRadius.pill),
                             border: Border.all(
-                              color: AppColors.warning.withValues(alpha: 0.3),
+                              color: AppColors.borderSubtle,
+                              width: 1.0,
                             ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text('🔥', style: TextStyle(fontSize: 16)),
-                              const SizedBox(width: 4),
+                              const Text('🔥', style: TextStyle(fontSize: 15)),
+                              const SizedBox(width: 6),
                               Text(
-                                '${provider.currentStreak}',
+                                '${provider.currentStreak}d streak',
                                 style: const TextStyle(
-                                  color: AppColors.warning,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 15,
+                                  color: AppColors.warmup,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                  letterSpacing: -0.2,
                                 ),
                               ),
                             ],
@@ -84,10 +115,10 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
 
-              // Circular Progress
+              // Circular Progress Hero Section
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  padding: const EdgeInsets.symmetric(vertical: 28),
                   child: Center(
                     child: GestureDetector(
                       onTap: () => _showGoalDialog(context, provider),
@@ -112,9 +143,9 @@ class HomeScreen extends StatelessWidget {
                 builder: (context) {
                   final now = DateTime.now();
 
-                  Color boxColor = AppColors.waterBlue;
-                  IconData icon = Icons.notifications_active_outlined;
-                  String title = 'Next Drink Suggested At';
+                  Color accentColor = AppColors.emeraldBright;
+                  IconData icon = Icons.notifications_active_rounded;
+                  String title = 'NEXT DRINK SUGGESTED AT';
                   String message = provider.nextDrinkingTime != null
                       ? DateFormat.jm().format(provider.nextDrinkingTime!)
                       : '';
@@ -122,10 +153,10 @@ class HomeScreen extends StatelessWidget {
 
                   if (provider.isGoalMet) {
                     showBox = true;
-                    boxColor = Colors.green;
-                    icon = Icons.emoji_events;
-                    title = 'Goal Completed! 🎉';
-                    message = 'Amazing job! You\'ve reached your daily hydration goal. Keep it up!';
+                    accentColor = AppColors.emeraldBright;
+                    icon = Icons.emoji_events_rounded;
+                    title = 'GOAL COMPLETED';
+                    message = 'Daily target reached! Keep up the optimal hydration!';
                   } else {
                     final sleepParts = provider.profile.sleepTime.split(':');
                     final wakeParts = provider.profile.wakeTime.split(':');
@@ -141,31 +172,26 @@ class HomeScreen extends StatelessWidget {
                         sleepDt = sleepDt.add(const Duration(days: 1));
                       }
 
-                      // Check if we are currently BEFORE wake time, meaning it's late night / early morning
-                      // Adjust sleepDt back for correct 'past bedtime' checking
                       if (now.isBefore(wakeDt) && sleepHour < wakeHour) {
                         sleepDt = sleepDt.subtract(const Duration(days: 1));
                       }
 
                       if (now.isAfter(sleepDt)) {
-                        // It is actually after their sleep time
-                        // Ensure we don't show this early morning *before* wake if sleep was before midnight
                         if (now.isBefore(wakeDt) && sleepHour > wakeHour) {
-                           // Do nothing, normal next drink
+                          // normal
                         } else {
                           showBox = true;
-                          boxColor = Colors.indigoAccent;
+                          accentColor = AppColors.warmup;
                           icon = Icons.nightlight_round;
-                          title = 'Past Bedtime 🌙';
-                          message = 'You still have some left! Try your best, and start fresh tomorrow!';
+                          title = 'PAST BEDTIME 🌙';
+                          message = 'Rest well tonight and start hydrated tomorrow!';
                         }
                       } else if (provider.nextDrinkingTime == null && provider.todayIntake > 0) {
-                        // It's not past sleep time, but nextDrinkingTime was pushed past sleep time
                         showBox = true;
-                        boxColor = Colors.indigoAccent;
+                        accentColor = AppColors.warmup;
                         icon = Icons.nightlight_round;
-                        title = 'Almost Bedtime 🌙';
-                        message = 'Not enough time for another drink! Start fresh tomorrow!';
+                        title = 'ALMOST BEDTIME 🌙';
+                        message = 'Wind down and prepare for a fresh start tomorrow.';
                       }
                     }
                   }
@@ -176,51 +202,63 @@ class HomeScreen extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                       child: Container(
-                        // Reduced fixed height to make it more compact but identically sized.
-                        height: 60,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
+                          vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: boxColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
                           border: Border.all(
-                            color: boxColor.withValues(alpha: 0.3),
+                            color: AppColors.borderSubtle,
+                            width: 1.0,
                           ),
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              icon,
-                              color: boxColor,
-                              size: 20,
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: AppColors.cardElevated,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: AppColors.borderSubtle,
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: Icon(
+                                icon,
+                                color: accentColor,
+                                size: 20,
+                              ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center, // Center text vertically
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: provider.isGoalMet || title.contains('Bedtime') ? 12.5 : 11,
-                                      color: provider.isGoalMet || title.contains('Bedtime') ? boxColor : AppColors.textSecondary,
-                                      fontWeight: provider.isGoalMet || title.contains('Bedtime') ? FontWeight.w700 : FontWeight.w600,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.textMuted,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.0,
                                     ),
                                   ),
-                                  const SizedBox(height: 1),
+                                  const SizedBox(height: 2),
                                   Text(
                                     message,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: provider.isGoalMet || title.contains('Bedtime') ? 11.5 : 12,
+                                    style: const TextStyle(
+                                      fontSize: 13,
                                       color: AppColors.textPrimary,
-                                      height: 1.2,
-                                      fontWeight: provider.isGoalMet || title.contains('Bedtime') ? FontWeight.w500 : FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ],
@@ -234,50 +272,63 @@ class HomeScreen extends StatelessWidget {
                 },
               ),
 
-              // Remaining info
+              // Quick Stats Card (Layered elevation via #101512 with 10% white hairline)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: AppColors.surfaceLight.withValues(alpha: 0.5),
+                        color: AppColors.borderSubtle,
+                        width: 1.0,
                       ),
                     ),
                     child: Row(
                       children: [
                         _QuickStat(
-                          icon: Icons.flag_outlined,
-                          label: 'Remaining',
+                          icon: Icons.flag_rounded,
+                          label: 'REMAINING',
                           value: provider.formatAmountShort(
                             provider.remainingMl,
                           ),
-                          color: AppColors.waterBlue,
+                          accentColor: AppColors.cyanBright,
                         ),
                         Container(
                           height: 36,
                           width: 1,
-                          color: AppColors.surfaceLight,
+                          color: AppColors.divider,
                         ),
                         _QuickStat(
-                          icon: Icons.format_list_numbered,
-                          label: 'Glasses',
+                          iconWidget: SvgPicture.asset(
+                            'assets/images/glass.svg',
+                            width: 18,
+                            height: 18,
+                            colorFilter: const ColorFilter.mode(
+                              AppColors.cyanBright,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                          label: 'GLASSES',
                           value: '${provider.todayEntries.length}',
-                          color: AppColors.secondary,
+                          accentColor: AppColors.cyanBright,
                         ),
                         Container(
                           height: 36,
                           width: 1,
-                          color: AppColors.surfaceLight,
+                          color: AppColors.divider,
                         ),
                         _QuickStat(
-                          icon: Icons.local_fire_department,
-                          label: 'Streak',
-                          value: '${provider.currentStreak} days',
-                          color: AppColors.warning,
+                          icon: Icons.history_rounded,
+                          label: 'LAST SIP',
+                          value: provider.todayEntries.isNotEmpty
+                              ? DateFormat('h:mm a').format(
+                                  provider.todayEntries.first.timestamp,
+                                )
+                              : '—',
+                          accentColor: AppColors.cyanBright,
                         ),
                       ],
                     ),
@@ -285,9 +336,9 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 28)),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-              // Add Water Button
+              // Primary Hero Call-To-Action Button ("Drink X ml")
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -309,6 +360,7 @@ class HomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: WaterSizeSelector(
                     selectedSize: provider.selectedSize,
+                    customSize: provider.lastCustomSize,
                     onSizeChanged: provider.setSelectedSize,
                   ),
                 ),
@@ -316,20 +368,21 @@ class HomeScreen extends StatelessWidget {
 
               const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-              // Today's History
+              // Today's History Section
               if (provider.todayEntries.isNotEmpty) ...[
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                    padding: const EdgeInsets.fromLTRB(24, 0, 20, 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Today\'s Intake',
+                          "TODAY'S INTAKE",
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.2,
+                            color: AppColors.textMuted,
                           ),
                         ),
                         GestureDetector(
@@ -340,29 +393,33 @@ class HomeScreen extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
-                              vertical: 4,
+                              vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.error.withValues(alpha: 0.1),
+                              color: AppColors.cardElevated,
                               borderRadius: BorderRadius.circular(
                                 AppRadius.pill,
+                              ),
+                              border: Border.all(
+                                color: AppColors.borderSubtle,
+                                width: 1.0,
                               ),
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  Icons.undo,
-                                  size: 14,
-                                  color: AppColors.error,
+                                  Icons.undo_rounded,
+                                  size: 13,
+                                  color: AppColors.failure,
                                 ),
                                 SizedBox(width: 4),
                                 Text(
                                   'Undo',
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.error,
-                                    fontWeight: FontWeight.w500,
+                                    fontSize: 11,
+                                    color: AppColors.failure,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ],
@@ -379,7 +436,7 @@ class HomeScreen extends StatelessWidget {
                     return Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
-                        vertical: 3,
+                        vertical: 4,
                       ),
                       child: Dismissible(
                         key: ValueKey(entry.timestamp.toIso8601String()),
@@ -388,49 +445,50 @@ class HomeScreen extends StatelessWidget {
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: 20),
                           decoration: BoxDecoration(
-                            color: AppColors.error.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            color: AppColors.failure.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(
-                            Icons.delete_outline,
-                            color: AppColors.error,
+                            Icons.delete_outline_rounded,
+                            color: AppColors.failure,
                           ),
                         ),
                         onDismissed: (_) => provider.removeEntry(entry),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
+                            horizontal: 14,
                             vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            color: AppColors.card,
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: AppColors.surfaceLight.withValues(
-                                alpha: 0.3,
-                              ),
+                              color: AppColors.borderSubtle,
+                              width: 1.0,
                             ),
                           ),
                           child: Row(
                             children: [
                               Container(
-                                width: 36,
-                                height: 36,
+                                width: 38,
+                                height: 38,
                                 decoration: BoxDecoration(
-                                  color: AppColors.waterBlue.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadius.sm,
+                                  color: AppColors.cardElevated,
+                                  borderRadius: BorderRadius.circular(11),
+                                  border: Border.all(
+                                    color: AppColors.borderSubtle,
+                                    width: 1.0,
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.water_drop,
-                                  color: AppColors.waterBlue,
-                                  size: 18,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.water_drop_rounded,
+                                    color: AppColors.cyanBright,
+                                    size: 18,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 14),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -438,8 +496,9 @@ class HomeScreen extends StatelessWidget {
                                     provider.formatAmountShort(entry.amount),
                                     style: const TextStyle(
                                       color: AppColors.textPrimary,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 16,
+                                      fontFeatures: [FontFeature.tabularFigures()],
                                     ),
                                   ),
                                   Text(
@@ -447,23 +506,25 @@ class HomeScreen extends StatelessWidget {
                                       'h:mm a',
                                     ).format(entry.timestamp),
                                     style: const TextStyle(
-                                      color: AppColors.textTertiary,
+                                      color: AppColors.textMuted,
                                       fontSize: 12,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
                               ),
                               const Spacer(),
                               const Icon(
-                                Icons.chevron_left,
-                                color: AppColors.textTertiary,
+                                Icons.chevron_left_rounded,
+                                color: AppColors.textMuted,
                                 size: 18,
                               ),
                               const Text(
                                 'swipe',
                                 style: TextStyle(
-                                  color: AppColors.textTertiary,
+                                  color: AppColors.textMuted,
                                   fontSize: 11,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
@@ -475,8 +536,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
 
-              // Bottom spacer
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              // Bottom spacer for floating capsule navigation bar
+              const SliverToBoxAdapter(child: SizedBox(height: 124)),
             ],
           ),
         );
@@ -500,20 +561,25 @@ class HomeScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.xl),
+          side: const BorderSide(color: AppColors.borderSubtle, width: 1.0),
         ),
         title: const Text(
-          'Set Daily Goal',
-          style: TextStyle(color: AppColors.textPrimary),
+          'Daily Target',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Recommended: 2000-3000 ml per day',
-              style: TextStyle(color: AppColors.textTertiary, fontSize: 13),
+              'Recommended range: 2000 - 3000 ml per day',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 13),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -523,25 +589,31 @@ class HomeScreen extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 18,
+                fontWeight: FontWeight.w700,
               ),
               decoration: InputDecoration(
                 suffixText: 'ml',
-                suffixStyle: const TextStyle(color: AppColors.textSecondary),
+                suffixStyle: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontWeight: FontWeight.w700,
+                ),
+                filled: true,
+                fillColor: AppColors.cardLight,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide: const BorderSide(color: AppColors.surfaceLight),
+                  borderSide: const BorderSide(color: AppColors.borderSubtle),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide: const BorderSide(color: AppColors.primary),
+                  borderSide: const BorderSide(color: AppColors.emeraldPrimary, width: 1.5),
                 ),
               ),
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
-            const SizedBox(height: 12),
-            // Quick presets
+            const SizedBox(height: 14),
+            // Quick preset pills
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [2000, 2500, 3000, 3500].map((goal) {
                 return GestureDetector(
                   onTap: () => controller.text = goal.toString(),
@@ -551,15 +623,19 @@ class HomeScreen extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceLight,
+                      color: AppColors.cardElevated,
                       borderRadius: BorderRadius.circular(AppRadius.pill),
+                      border: Border.all(
+                        color: AppColors.borderSubtle,
+                        width: 1.0,
+                      ),
                     ),
                     child: Text(
                       '${goal}ml',
                       style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -587,8 +663,8 @@ class HomeScreen extends StatelessWidget {
             child: const Text(
               'Save',
               style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
+                color: AppColors.emeraldBright,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
@@ -599,41 +675,88 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _QuickStat extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? iconWidget;
   final String label;
   final String value;
-  final Color color;
+  final Color accentColor;
 
   const _QuickStat({
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.label,
     required this.value,
-    required this.color,
+    required this.accentColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final numericPart =
+        double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final isPlainCounter =
+        numericPart != null && !value.contains(':') && !value.contains('Done');
+
     return Expanded(
       child: Column(
         children: [
-          Icon(icon, color: color, size: 18),
-          const SizedBox(height: 4),
-          AnimatedFlipCounter(
-            value:
-                double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0,
-            fractionDigits: 0,
-            suffix: value.replaceAll(RegExp(r'[0-9.]'), ''),
-            duration: const Duration(milliseconds: 800),
-            curve: Curves.easeOutCubic,
-            textStyle: const TextStyle(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.cardElevated,
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(
+                color: AppColors.borderSubtle,
+                width: 1.0,
+              ),
+            ),
+            child: Center(
+              child: iconWidget ??
+                  Icon(
+                    icon,
+                    color: accentColor,
+                    size: 16,
+                  ),
             ),
           ),
+          const SizedBox(height: 8),
+          if (isPlainCounter)
+            AnimatedFlipCounter(
+              value: numericPart,
+              fractionDigits: 0,
+              suffix: value.replaceAll(RegExp(r'[0-9.]'), ''),
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeOutCubic,
+              textStyle: const TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+                letterSpacing: -0.3,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            )
+          else
+            Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+                letterSpacing: -0.3,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+            ),
           ),
         ],
       ),
@@ -689,35 +812,21 @@ class _AddWaterButtonState extends State<_AddWaterButton>
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            // Primary Hero Call-To-Action Recipe (Resonating with new Logo)
+            gradient: AppColors.heroCtaGradient,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: AppColors.heroCtaShadow,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.water_drop,
-                color: AppColors.background,
-                size: 22,
+          child: Center(
+            child: Text(
+              'Drink ${widget.sizeMl} ${context.read<WaterProvider>().unitLabel}',
+              style: GoogleFonts.montserrat(
+                color: Colors.black,
+                fontSize: 21,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
               ),
-              const SizedBox(width: 10),
-              Text(
-                'Drink ${widget.sizeMl} ${context.read<WaterProvider>().unitLabel}',
-                style: const TextStyle(
-                  color: AppColors.background,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

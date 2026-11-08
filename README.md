@@ -1,3 +1,3 @@
-# aqua_reminder
+# AQUÉA
 
-A new Flutter project.
+Elite obsidian & electric cyan daily hydration tracker.

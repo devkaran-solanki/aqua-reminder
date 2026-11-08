@@ -5,8 +5,22 @@ import '../utils/constants.dart';
 class CustomTimePicker extends StatefulWidget {
   final TimeOfDay initialTime;
   final ValueChanged<TimeOfDay> onChanged;
+  final Color? backgroundColor;
+  final Color? fadeColor;
+  final bool showBorder;
+  final EdgeInsetsGeometry? highlightMargin;
+  final Color? accentColor;
 
-  const CustomTimePicker({super.key, required this.initialTime, required this.onChanged});
+  const CustomTimePicker({
+    super.key,
+    required this.initialTime,
+    required this.onChanged,
+    this.backgroundColor,
+    this.fadeColor,
+    this.showBorder = false,
+    this.highlightMargin = EdgeInsets.zero,
+    this.accentColor,
+  });
 
   @override
   State<CustomTimePicker> createState() => _CustomTimePickerState();
@@ -60,16 +74,21 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
   @override
   Widget build(BuildContext context) {
     const double itemExtent = 50;
+    final bg = widget.backgroundColor ?? Colors.transparent;
+    final fade = widget.fadeColor ?? AppColors.card;
+    final accent = widget.accentColor ?? AppColors.cyanBright;
 
     return Container(
       height: itemExtent * 5, // Exactly 5 rows visible
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          color: AppColors.surfaceLight.withValues(alpha: 0.8),
-          width: 1.5,
-        ),
+        color: bg,
+        borderRadius: BorderRadius.circular(16),
+        border: widget.showBorder
+            ? Border.all(
+                color: AppColors.borderSubtle,
+                width: 1.0,
+              )
+            : null,
       ),
       child: Stack(
         alignment: Alignment.center,
@@ -77,13 +96,21 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
           // Middle row highlight
           Container(
             height: itemExtent,
-            margin: const EdgeInsets.symmetric(horizontal: 12),
+            margin: widget.highlightMargin ?? EdgeInsets.zero,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppRadius.md),
+              color: const Color(0xFF0E0E0E),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
+                color: accent.withValues(alpha: 0.35),
+                width: 1.0,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.12),
+                  blurRadius: 14,
+                  spreadRadius: 0,
+                ),
+              ],
             ),
           ),
 
@@ -103,12 +130,12 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                 },
                 isLooping: true,
               ),
-              const Text(
+              Text(
                 ':',
                 style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: accent,
                   height: 0.8,
                 ),
               ),
@@ -151,15 +178,15 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(AppRadius.lg),
+                    top: Radius.circular(16),
                   ),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      AppColors.surface,
-                      AppColors.surface.withValues(alpha: 0.5),
-                      AppColors.surface.withValues(alpha: 0),
+                      fade,
+                      fade.withValues(alpha: 0.6),
+                      fade.withValues(alpha: 0.0),
                     ],
                   ),
                 ),
@@ -175,15 +202,15 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(AppRadius.lg),
+                    bottom: Radius.circular(16),
                   ),
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      AppColors.surface,
-                      AppColors.surface.withValues(alpha: 0.5),
-                      AppColors.surface.withValues(alpha: 0),
+                      fade,
+                      fade.withValues(alpha: 0.6),
+                      fade.withValues(alpha: 0.0),
                     ],
                   ),
                 ),
@@ -242,16 +269,16 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
   }
 
   Widget _buildWheelItemText({required String text, required bool isSelected}) {
+    final accent = widget.accentColor ?? AppColors.cyanBright;
     return Center(
       child: AnimatedDefaultTextStyle(
         duration: const Duration(milliseconds: 150),
         style: TextStyle(
-          fontSize: isSelected ? 26 : 20,
+          fontSize: isSelected ? 24 : 18,
           fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-          color: isSelected
-              ? AppColors.primaryLight
-              : AppColors.textSecondary.withValues(alpha: 0.5),
-          letterSpacing: isSelected ? 1 : 0,
+          color: isSelected ? accent : AppColors.textMuted,
+          letterSpacing: isSelected ? 0.5 : 0,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
         child: Text(text),
       ),

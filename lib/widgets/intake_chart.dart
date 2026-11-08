@@ -21,11 +21,12 @@ class IntakeBarChart extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(40),
           child: Text(
-            'No data yet.\nStart drinking water to see your stats!',
+            'No data yet.\nStart logging water to see your analytics.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AppColors.textTertiary,
-              fontSize: 14,
+              color: AppColors.textMuted,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -35,21 +36,29 @@ class IntakeBarChart extends StatelessWidget {
     final maxValue = data.values.fold<double>(0, (a, b) => a > b ? a : b);
     final rawMax = goalLine != null && goalLine! > maxValue ? goalLine! : maxValue;
     final baseMax = rawMax < 1000 ? 1000.0 : rawMax;
-    
+
     double interval = 200;
-    if (baseMax <= 1000) interval = 200;
-    else if (baseMax <= 2500) interval = 500;
-    else if (baseMax <= 6000) interval = 1000;
-    else if (baseMax <= 12000) interval = 2000;
-    else if (baseMax <= 30000) interval = 5000;
-    else if (baseMax <= 60000) interval = 10000;
-    else if (baseMax <= 150000) interval = 30000;
-    else interval = 50000;
-    
+    if (baseMax <= 1000) {
+      interval = 200;
+    } else if (baseMax <= 2500) {
+      interval = 500;
+    } else if (baseMax <= 6000) {
+      interval = 1000;
+    } else if (baseMax <= 12000) {
+      interval = 2000;
+    } else if (baseMax <= 30000) {
+      interval = 5000;
+    } else if (baseMax <= 60000) {
+      interval = 10000;
+    } else if (baseMax <= 150000) {
+      interval = 30000;
+    } else {
+      interval = 50000;
+    }
+
     double effectiveMax = ((baseMax / interval).ceil() * interval).toDouble();
     if (effectiveMax - baseMax < interval * 0.1) {
-      // Add one more interval if it's too close to the top to give visual headroom
-      effectiveMax += interval; 
+      effectiveMax += interval;
     }
 
     return Padding(
@@ -61,18 +70,20 @@ class IntakeBarChart extends StatelessWidget {
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
-              getTooltipColor: (group) => AppColors.surface,
+              getTooltipColor: (group) => AppColors.cardElevated,
+              tooltipBorder: const BorderSide(color: AppColors.borderSubtle, width: 1.0),
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final rawLabel = data.keys.elementAt(groupIndex);
                 final labelParts = rawLabel.split('_');
                 final tooltipLabel = labelParts.length > 1 ? labelParts[1] : rawLabel;
-                
+
                 return BarTooltipItem(
                   '$tooltipLabel\n${rod.toY.toInt()} $unit',
                   const TextStyle(
                     color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     fontSize: 12,
+                    fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 );
               },
@@ -80,10 +91,8 @@ class IntakeBarChart extends StatelessWidget {
           ),
           titlesData: FlTitlesData(
             show: true,
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -92,17 +101,19 @@ class IntakeBarChart extends StatelessWidget {
                 getTitlesWidget: (value, meta) {
                   if (value == 0 || value > meta.max) return const SizedBox.shrink();
                   final l = value / 1000;
-                  String label = (l == l.toInt()) 
-                      ? '${l.toInt()}L' 
+                  String label = (l == l.toInt())
+                      ? '${l.toInt()}L'
                       : '${l.toStringAsFixed(1)}L';
-                  
+
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: Text(
                       label,
                       style: const TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 11,
+                        color: AppColors.textMuted,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: [FontFeature.tabularFigures()],
                       ),
                     ),
                   );
@@ -118,7 +129,7 @@ class IntakeBarChart extends StatelessWidget {
                   if (index < 0 || index >= data.length) {
                     return const SizedBox.shrink();
                   }
-                  
+
                   final rawLabel = data.keys.elementAt(index);
                   final labelParts = rawLabel.split('_');
                   final axisLabel = labelParts[0];
@@ -130,7 +141,7 @@ class IntakeBarChart extends StatelessWidget {
                         margin: const EdgeInsets.only(top: 8),
                         width: 1,
                         height: 4,
-                        color: AppColors.textTertiary.withValues(alpha: 0.4),
+                        color: AppColors.borderSubtle,
                       ),
                     );
                   }
@@ -140,9 +151,9 @@ class IntakeBarChart extends StatelessWidget {
                     child: Text(
                       axisLabel,
                       style: const TextStyle(
-                        color: AppColors.textTertiary,
+                        color: AppColors.textMuted,
                         fontSize: 10,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   );
@@ -154,8 +165,8 @@ class IntakeBarChart extends StatelessWidget {
             show: true,
             drawVerticalLine: false,
             horizontalInterval: interval,
-            getDrawingHorizontalLine: (value) => FlLine(
-              color: AppColors.surfaceLight.withValues(alpha: 0.3),
+            getDrawingHorizontalLine: (value) => const FlLine(
+              color: AppColors.divider,
               strokeWidth: 1,
             ),
           ),
@@ -165,18 +176,19 @@ class IntakeBarChart extends StatelessWidget {
                   horizontalLines: [
                     HorizontalLine(
                       y: goalLine!,
-                      color: AppColors.primary.withValues(alpha: 0.5),
-                      strokeWidth: 2,
-                      dashArray: [8, 4],
+                      color: AppColors.emeraldPrimary.withValues(alpha: 0.5),
+                      strokeWidth: 1.5,
+                      dashArray: [6, 4],
                       label: HorizontalLineLabel(
                         show: true,
                         alignment: Alignment.topRight,
                         style: const TextStyle(
-                          color: AppColors.primary,
+                          color: AppColors.emeraldBright,
                           fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
                         ),
-                        labelResolver: (_) => 'Goal',
+                        labelResolver: (_) => 'GOAL',
                       ),
                     ),
                   ],
@@ -185,8 +197,7 @@ class IntakeBarChart extends StatelessWidget {
           barGroups: data.entries.toList().asMap().entries.map((mapEntry) {
             final index = mapEntry.key;
             final value = mapEntry.value.value;
-            final isAboveGoal =
-                goalLine != null && value >= goalLine!;
+            final isAboveGoal = goalLine != null && value >= goalLine!;
 
             return BarChartGroupData(
               x: index,
@@ -200,13 +211,13 @@ class IntakeBarChart extends StatelessWidget {
                   ),
                   gradient: LinearGradient(
                     colors: isAboveGoal
-                        ? [
-                            AppColors.primary,
-                            AppColors.primaryLight,
+                        ? const [
+                            AppColors.emeraldPrimary,
+                            AppColors.emeraldBright,
                           ]
-                        : [
-                            AppColors.waterBlueDark,
-                            AppColors.waterBlue,
+                        : const [
+                            AppColors.cardLight,
+                            AppColors.cardHover,
                           ],
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,

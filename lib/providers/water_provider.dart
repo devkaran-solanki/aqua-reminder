@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/water_entry.dart';
 import '../models/user_profile.dart';
+import '../models/reminder_alarm.dart';
 import '../utils/constants.dart';
 import '../services/notification_service.dart';
 
@@ -10,17 +11,22 @@ class WaterProvider extends ChangeNotifier {
   List<WaterEntry> _entries = [];
   int _dailyGoalMl = WaterDefaults.dailyGoalMl;
   int _selectedSize = WaterDefaults.defaultSelectedSize;
+  int? _lastCustomSize;
   bool _isLoaded = false;
   UserProfile _profile = const UserProfile();
+  List<ReminderAlarm> _customAlarms = [];
 
   // Getters
   List<WaterEntry> get entries => _entries;
   int get dailyGoalMl => _dailyGoalMl;
   int get selectedSize => _selectedSize;
+  int? get lastCustomSize => _lastCustomSize;
   bool get isLoaded => _isLoaded;
   UserProfile get profile => _profile;
   bool get isOnboardingComplete => _profile.onboardingComplete;
   MeasureUnit get unit => _profile.unit;
+  ReminderMode get reminderMode => _profile.reminderMode;
+  List<ReminderAlarm> get customAlarms => List.unmodifiable(_customAlarms);
 
   // Format amount respecting user's unit preference
   String formatAmount(int ml) => UnitConverter.formatAmount(ml, _profile.unit);
@@ -243,9 +249,17 @@ class WaterProvider extends ChangeNotifier {
   }
 
   // Actions
-  void setSelectedSize(int size) {
+  Future<void> setSelectedSize(int size) async {
     _selectedSize = size;
+    if (!WaterDefaults.presetSizes.contains(size)) {
+      _lastCustomSize = size;
+    }
     notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('selectedContainerSize', size);
+    if (_lastCustomSize != null) {
+      await prefs.setInt('lastCustomContainerSize', _lastCustomSize!);
+    }
   }
 
   Future<void> addWater([int? amount]) async {
@@ -325,6 +339,96 @@ class WaterProvider extends ChangeNotifier {
     _rescheduleNotifications();
   }
 
+  // Reminder mode & custom alarms actions
+  Future<void> setReminderMode(ReminderMode mode) async {
+    if (_profile.reminderMode == mode) return;
+    _profile = _profile.copyWith(reminderMode: mode);
+    notifyListeners();
+    await _saveProfile();
+    await _rescheduleNotifications();
+  }
+
+  Future<void> _saveCustomAlarms() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _customAlarms.map((a) => a.toJson()).toList();
+    await prefs.setString('customReminderAlarms', jsonEncode(jsonList));
+  }
+
+  Future<void> toggleAlarm(String id) async {
+    final idx = _customAlarms.indexWhere((a) => a.id == id);
+    if (idx != -1) {
+      final updated = _customAlarms[idx].copyWith(
+        isEnabled: !_customAlarms[idx].isEnabled,
+      );
+      _customAlarms[idx] = updated;
+      notifyListeners();
+      await _saveCustomAlarms();
+      await _rescheduleNotifications();
+    }
+  }
+
+  Future<void> updateAlarm(ReminderAlarm alarm) async {
+    final idx = _customAlarms.indexWhere((a) => a.id == alarm.id);
+    if (idx != -1) {
+      _customAlarms[idx] = alarm;
+      _sortAlarms();
+      notifyListeners();
+      await _saveCustomAlarms();
+      await _rescheduleNotifications();
+    }
+  }
+
+  Future<void> addAlarm(String time, {List<int>? days}) async {
+    final newAlarm = ReminderAlarm(
+      id: 'alarm_${DateTime.now().millisecondsSinceEpoch}',
+      time: time,
+      isEnabled: true,
+      days: days ?? const [1, 2, 3, 4, 5, 6, 7],
+    );
+    _customAlarms.add(newAlarm);
+    _sortAlarms();
+    notifyListeners();
+    await _saveCustomAlarms();
+    await _rescheduleNotifications();
+  }
+
+  Future<void> deleteAlarm(String id) async {
+    _customAlarms.removeWhere((a) => a.id == id);
+    notifyListeners();
+    await _saveCustomAlarms();
+    await _rescheduleNotifications();
+  }
+
+  Future<void> deleteAlarms(List<String> ids) async {
+    final set = ids.toSet();
+    _customAlarms.removeWhere((a) => set.contains(a.id));
+    notifyListeners();
+    await _saveCustomAlarms();
+    await _rescheduleNotifications();
+  }
+
+  Future<void> deleteAllAlarms() async {
+    _customAlarms.clear();
+    notifyListeners();
+    await _saveCustomAlarms();
+    await _rescheduleNotifications();
+  }
+
+  Future<void> resetAlarmsToDefault() async {
+    _customAlarms = ReminderAlarm.generateDefaultSchedule(
+      wakeTime: _profile.wakeTime,
+      sleepTime: _profile.sleepTime,
+    );
+    _sortAlarms();
+    notifyListeners();
+    await _saveCustomAlarms();
+    await _rescheduleNotifications();
+  }
+
+  void _sortAlarms() {
+    _customAlarms.sort((a, b) => a.totalMinutes.compareTo(b.totalMinutes));
+  }
+
   Future<void> _rescheduleNotifications() async {
     if (!isOnboardingComplete) return;
 
@@ -346,6 +450,38 @@ class WaterProvider extends ChangeNotifier {
       sleepDt = sleepDt.add(const Duration(days: 1));
     }
 
+    // Morning cheer calculation
+    DateTime nextDayWakeTime = DateTime(now.year, now.month, now.day + 1, wakeHour, wakeMinute);
+    DateTime? morningCheerTime;
+    if (isGoalMet) {
+      morningCheerTime = nextDayWakeTime;
+    } else {
+      final yesterdayMet = getIntakeForDate(now.subtract(const Duration(days: 1))) >= _dailyGoalMl;
+      if (yesterdayMet && now.isBefore(wakeDt)) {
+        morningCheerTime = wakeDt;
+      }
+    }
+
+    // Streak maintain calculation
+    DateTime? streakMaintainTime;
+    if (!isGoalMet && currentStreak > 0) {
+      final warningTime = sleepDt.subtract(const Duration(hours: 2));
+      if (warningTime.isAfter(now)) {
+        streakMaintainTime = warningTime;
+      }
+    }
+
+    // Manual schedule mode branch
+    if (_profile.reminderMode == ReminderMode.manual) {
+      await NotificationService().scheduleManualReminders(
+        alarms: _customAlarms,
+        morningCheerTime: morningCheerTime,
+        streakMaintainTime: streakMaintainTime,
+      );
+      return;
+    }
+
+    // Smart Adaptive mode calculation
     final totalMinutesAwake = sleepDt.difference(wakeDt).inMinutes;
     if (totalMinutesAwake <= 0) return;
     
@@ -367,19 +503,15 @@ class WaterProvider extends ChangeNotifier {
     List<DateTime> scheduledTimes = [];
     DateTime nextTime = lastDrinkTime.add(Duration(minutes: intervalMinutes));
     
-    // Catch next time up to now if we are late
     while (nextTime.isBefore(now)) {
       nextTime = nextTime.add(Duration(minutes: intervalMinutes));
     }
 
-    // Schedule for the rest of today
     while (nextTime.isBefore(sleepDt)) {
       scheduledTimes.add(nextTime);
       nextTime = nextTime.add(Duration(minutes: intervalMinutes));
     }
 
-    // Also purely schedule for tomorrow's awake block
-    DateTime nextDayWakeTime = DateTime(now.year, now.month, now.day + 1, wakeHour, wakeMinute);
     DateTime nextDaySleepTime = DateTime(now.year, now.month, now.day + 1, sleepHour, sleepMinute);
     if (nextDaySleepTime.isBefore(nextDayWakeTime)) {
       nextDaySleepTime = nextDaySleepTime.add(const Duration(days: 1));
@@ -389,30 +521,6 @@ class WaterProvider extends ChangeNotifier {
     while (nextDayTime.isBefore(nextDaySleepTime)) {
       scheduledTimes.add(nextDayTime);
       nextDayTime = nextDayTime.add(Duration(minutes: intervalMinutes));
-    }
-
-    // 2. Morning Cheer
-    DateTime? morningCheerTime;
-    if (isGoalMet) {
-      // Met today, schedule cheer up for tomorrow's wake time
-      morningCheerTime = nextDayWakeTime;
-    } else {
-      // Haven't met today yet. If yesterday was met, maybe we missed today's cheer time?
-      final yesterdayMet = getIntakeForDate(now.subtract(const Duration(days: 1))) >= _dailyGoalMl;
-      if (yesterdayMet && now.isBefore(wakeDt)) {
-        // Schedule it today because they haven't woken up yet
-        morningCheerTime = wakeDt;
-      }
-    }
-
-    // 3. Streak Maintenance
-    DateTime? streakMaintainTime;
-    if (!isGoalMet && currentStreak > 0) {
-      final warningTime = sleepDt.subtract(const Duration(hours: 2));
-      // Schedule only if time is in the future
-      if (warningTime.isAfter(now)) {
-        streakMaintainTime = warningTime;
-      }
     }
 
     await NotificationService().scheduleSmartReminders(
@@ -426,6 +534,11 @@ class WaterProvider extends ChangeNotifier {
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     _dailyGoalMl = prefs.getInt('dailyGoal') ?? WaterDefaults.dailyGoalMl;
+    final savedSize = prefs.getInt('selectedContainerSize');
+    if (savedSize != null && savedSize > 0) {
+      _selectedSize = savedSize;
+    }
+    _lastCustomSize = prefs.getInt('lastCustomContainerSize');
 
     // Load profile
     final profileJson = prefs.getString('userProfile');
@@ -441,6 +554,28 @@ class WaterProvider extends ChangeNotifier {
       _entries = decoded
           .map((e) => WaterEntry.fromJson(e as Map<String, dynamic>))
           .toList();
+    }
+
+    // Load custom alarms
+    final alarmsJson = prefs.getString('customReminderAlarms');
+    if (alarmsJson != null) {
+      try {
+        final List<dynamic> decoded = jsonDecode(alarmsJson);
+        _customAlarms = decoded
+            .map((e) => ReminderAlarm.fromJson(e as Map<String, dynamic>))
+            .toList();
+        _sortAlarms();
+      } catch (_) {
+        _customAlarms = ReminderAlarm.generateDefaultSchedule(
+          wakeTime: _profile.wakeTime,
+          sleepTime: _profile.sleepTime,
+        );
+      }
+    } else {
+      _customAlarms = ReminderAlarm.generateDefaultSchedule(
+        wakeTime: _profile.wakeTime,
+        sleepTime: _profile.sleepTime,
+      );
     }
 
     // Clean up entries older than 1 year to save storage

@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
+import '../models/reminder_alarm.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -116,6 +117,67 @@ class NotificationService {
     }
   }
 
+  Future<void> scheduleManualReminders({
+    required List<ReminderAlarm> alarms,
+    required DateTime? morningCheerTime,
+    required DateTime? streakMaintainTime,
+  }) async {
+    if (!_initialized) return;
+
+    await requestPermissions();
+    await cancelAllNotifications();
+
+    int id = 0;
+    final now = DateTime.now();
+
+    for (final alarm in alarms) {
+      if (!alarm.isEnabled) continue;
+      final hour = alarm.hour;
+      final minute = alarm.minute;
+
+      // Schedule for the upcoming 7 days matching alarm.days
+      for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
+        final targetDate = now.add(Duration(days: dayOffset));
+        final weekday = targetDate.weekday; // 1 = Monday .. 7 = Sunday
+        if (alarm.days.contains(weekday)) {
+          final scheduledTime = DateTime(
+            targetDate.year,
+            targetDate.month,
+            targetDate.day,
+            hour,
+            minute,
+          );
+          if (scheduledTime.isAfter(now)) {
+            await _scheduleNotification(
+              id: id++,
+              title: _getRandomDrinkTitle(),
+              body: _getRandomDrinkBody(),
+              scheduledTime: scheduledTime,
+            );
+          }
+        }
+      }
+    }
+
+    if (morningCheerTime != null && morningCheerTime.isAfter(now)) {
+      await _scheduleNotification(
+        id: id++,
+        title: 'Good Morning! ☀️',
+        body: 'You crushed your hydration goal yesterday! Let\'s keep that energy up today. 💪',
+        scheduledTime: morningCheerTime,
+      );
+    }
+
+    if (streakMaintainTime != null && streakMaintainTime.isAfter(now)) {
+      await _scheduleNotification(
+        id: id++,
+        title: 'Don\'t break the streak! 🔥',
+        body: 'You are close to reaching your goal for today! Have a drink to keep your streak alive.',
+        scheduledTime: streakMaintainTime,
+      );
+    }
+  }
+
   String _getRandomDrinkTitle() {
     final titles = [
       'Time to hydrate! 💧',
@@ -153,9 +215,9 @@ class NotificationService {
       scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
-          'water_reminder_channel',
-          'Water Reminders',
-          channelDescription: 'Notifications to remind you to drink water',
+          'aquea_reminder_channel',
+          'AQUÉA Reminders',
+          channelDescription: 'Notifications from AQUÉA to keep you hydrated',
           importance: Importance.max,
           priority: Priority.high,
           // Updated to use the native drawable filename without extension

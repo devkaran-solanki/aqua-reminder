@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/water_entry.dart';
@@ -1283,7 +1283,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                         outline: AppColors.surfaceLight,
                         outlineVariant: AppColors.surfaceLight,
                       ),
-                      dialogBackgroundColor: AppColors.surface,
+                      dialogTheme: const DialogThemeData(backgroundColor: AppColors.surface),
                       datePickerTheme: DatePickerThemeData(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.xl),

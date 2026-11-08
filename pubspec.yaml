@@ -1,5 +1,5 @@
-name: aqua_reminder
-description: "Aqua Reminder - A beautiful daily hydration tracker."
+name: aquea
+description: "AQUÉA - Elite Obsidian & Electric Cyan Hydration Tracker."
 publish_to: "none"
 version: 0.1.0+1
 
@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   animated_flip_counter: ^0.3.4
+  cupertino_icons: ^1.0.8
   fl_chart: ^1.2.0
   flutter:
     sdk: flutter
@@ -34,7 +35,7 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/images/app_icon.png"
-  adaptive_icon_background: "#0A0E21"
+  adaptive_icon_background: "#070A08"
   adaptive_icon_foreground: "assets/images/app_icon.png"
   remove_alpha_ios: true
   min_sdk_android: 21
@@ -44,7 +45,7 @@ flutter_native_splash:
   image: "assets/images/app_icon.png"
   android_12:
     image: "assets/images/app_icon.png"
-    icon_background_color: "#0A0E21"
+    icon_background_color: "#070A08"
     background_image: "assets/images/splash_background.png"
 
 flutter:

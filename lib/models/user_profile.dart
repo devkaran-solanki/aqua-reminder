@@ -1,3 +1,5 @@
+import 'reminder_alarm.dart';
+
 enum MeasureUnit { ml, oz }
 
 enum WeightUnit { kg, lbs }
@@ -26,6 +28,7 @@ class UserProfile {
   final Gender gender;
   final ActivityLevel activityLevel;
   final Climate climate;
+  final ReminderMode reminderMode;
 
   const UserProfile({
     this.name = '',
@@ -41,6 +44,7 @@ class UserProfile {
     this.gender = Gender.other,
     this.activityLevel = ActivityLevel.moderate,
     this.climate = Climate.moderate,
+    this.reminderMode = ReminderMode.auto,
   });
 
   UserProfile copyWith({
@@ -57,6 +61,7 @@ class UserProfile {
     Gender? gender,
     ActivityLevel? activityLevel,
     Climate? climate,
+    ReminderMode? reminderMode,
   }) {
     return UserProfile(
       name: name ?? this.name,
@@ -72,6 +77,7 @@ class UserProfile {
       gender: gender ?? this.gender,
       activityLevel: activityLevel ?? this.activityLevel,
       climate: climate ?? this.climate,
+      reminderMode: reminderMode ?? this.reminderMode,
     );
   }
 
@@ -146,6 +152,7 @@ class UserProfile {
     'gender': gender.name,
     'activityLevel': activityLevel.name,
     'climate': climate.name,
+    'reminderMode': reminderMode.name,
   };
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
@@ -179,6 +186,10 @@ class UserProfile {
     climate: Climate.values.firstWhere(
       (c) => c.name == json['climate'],
       orElse: () => Climate.moderate,
+    ),
+    reminderMode: ReminderMode.values.firstWhere(
+      (m) => m.name == json['reminderMode'],
+      orElse: () => ReminderMode.auto,
     ),
   );
 }

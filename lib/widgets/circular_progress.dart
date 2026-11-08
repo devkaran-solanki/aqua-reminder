@@ -1,8 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import '../utils/constants.dart';
-
 import 'package:animated_flip_counter/animated_flip_counter.dart';
+import '../utils/constants.dart';
 
 class CircularWaterProgress extends StatefulWidget {
   final double progress;
@@ -70,13 +69,15 @@ class _CircularWaterProgressState extends State<CircularWaterProgress>
 
   @override
   Widget build(BuildContext context) {
+    final isGoalMet = widget.progress >= 1.0;
+
     return SizedBox(
       width: widget.size,
       height: widget.size,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Background ring
+          // Background Track & Progress Arc
           AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
@@ -84,28 +85,21 @@ class _CircularWaterProgressState extends State<CircularWaterProgress>
                 size: Size(widget.size, widget.size),
                 painter: _CircularProgressPainter(
                   progress: _animation.value,
-                  strokeWidth: 14,
+                  strokeWidth: 15,
                 ),
               );
             },
           ),
-          // Center content
+          // Center content (Restores exact vertical baseline from when drop was present)
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Water drop icon
-              Icon(
-                Icons.water_drop,
-                color: widget.progress >= 1.0
-                    ? AppColors.success
-                    : AppColors.waterBlue.withValues(alpha: 0.6),
-                size: 28,
-              ),
-              const SizedBox(height: 4),
-              // Current amount
+              // Preserves the exact 30px offset from the previous 26px drop + 4px gap
+              const SizedBox(height: 30),
+
+              // Current Amount Metric Readout
               AnimatedFlipCounter(
-                value:
-                    double.tryParse(
+                value: double.tryParse(
                       widget.displayCurrent.replaceAll(
                         RegExp(r'[^0-9.]'),
                         '',
@@ -121,21 +115,26 @@ class _CircularWaterProgressState extends State<CircularWaterProgress>
                 curve: Curves.easeOutCubic,
                 textStyle: const TextStyle(
                   fontSize: 42,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
-                  letterSpacing: -1,
+                  letterSpacing: -1.0,
                   height: 1.1,
+                  fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
+              const SizedBox(height: 2),
+
+              // Goal Subtitle
               Text(
                 'of ${widget.displayGoal}',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 8),
+
               // Percentage
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -143,21 +142,28 @@ class _CircularWaterProgressState extends State<CircularWaterProgress>
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: widget.progress >= 1.0
-                      ? AppColors.success.withValues(alpha: 0.15)
-                      : AppColors.primary.withValues(alpha: 0.1),
+                  color: isGoalMet
+                      ? AppColors.cyanGlow
+                      : AppColors.card,
                   borderRadius: BorderRadius.circular(AppRadius.pill),
+                  border: Border.all(
+                    color: isGoalMet
+                        ? AppColors.borderActive
+                        : AppColors.borderSubtle,
+                    width: 1.0,
+                  ),
                 ),
                 child: Text(
-                  widget.progress >= 1.0
+                  isGoalMet
                       ? '✓ Goal Met!'
                       : '${(widget.progress * 100).toInt()}%',
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: widget.progress >= 1.0
-                        ? AppColors.success
-                        : AppColors.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isGoalMet
+                        ? AppColors.cyanBright
+                        : AppColors.textSecondary,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),
@@ -173,39 +179,40 @@ class _CircularProgressPainter extends CustomPainter {
   final double progress;
   final double strokeWidth;
 
-  _CircularProgressPainter({required this.progress, this.strokeWidth = 14});
+  _CircularProgressPainter({required this.progress, this.strokeWidth = 15});
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
-    // Background track
+    // Background track (subtle neutral dark obsidian track)
     final trackPaint = Paint()
-      ..color = AppColors.surfaceLight.withValues(alpha: 0.5)
+      ..color = const Color(0xFF141414)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
     canvas.drawCircle(center, radius, trackPaint);
 
-    // Progress arc
+    // Progress arc (Natural Cyan/Aqua Water Gradient)
     if (progress > 0) {
       final rect = Rect.fromCircle(center: center, radius: radius);
-      final sweepAngle = 2 * pi * progress;
+      final sweepAngle = 2 * pi * progress.clamp(0.0, 1.0);
 
-      // Create gradient
       final gradient = SweepGradient(
         startAngle: -pi / 2,
-        endAngle: -pi / 2 + 2 * pi,
+        endAngle: 3 * pi / 2,
         colors: const [
-          AppColors.primary,
-          AppColors.waterBlue,
-          AppColors.secondary,
-          AppColors.primary,
+          Color(0xFF00FFE0), // Radiant Mint Aqua (luminous origin at 12 o'clock)
+          Color(0xFF00F2FE), // Electric Cyan
+          Color(0xFF00D2FF), // Radiant Sky Aqua
+          Color(0xFF00A3E0), // Deep Marine Aqua (natural depth at bottom)
+          Color(0xFF00D2FF), // Radiant Sky Aqua
+          Color(0xFF00F2FE), // Electric Cyan
+          Color(0xFF00FFE0), // Radiant Mint Aqua
         ],
-        stops: const [0.0, 0.33, 0.66, 1.0],
-        transform: const GradientRotation(-pi / 2),
+        stops: const [0.0, 0.18, 0.38, 0.55, 0.72, 0.88, 1.0],
       );
 
       final progressPaint = Paint()

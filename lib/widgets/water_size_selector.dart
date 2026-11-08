@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/constants.dart';
 
 class WaterSizeSelector extends StatelessWidget {
   final int selectedSize;
+  final int? customSize;
   final ValueChanged<int> onSizeChanged;
 
   const WaterSizeSelector({
     super.key,
     required this.selectedSize,
+    this.customSize,
     required this.onSizeChanged,
   });
 
@@ -20,28 +23,31 @@ class WaterSizeSelector extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
-            'Container Size',
+            'CONTAINER SIZE',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+              color: AppColors.textMuted,
             ),
           ),
         ),
         SizedBox(
-          height: 80,
+          height: 84,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
             itemCount: WaterDefaults.presetSizes.length + 1,
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               if (index == WaterDefaults.presetSizes.length) {
                 // Custom size button
+                final isCustomSelected =
+                    !WaterDefaults.presetSizes.contains(selectedSize);
                 return _CustomSizeChip(
-                  isSelected: !WaterDefaults.presetSizes.contains(selectedSize),
-                  currentCustomSize: WaterDefaults.presetSizes.contains(selectedSize)
-                      ? null
-                      : selectedSize,
+                  isSelected: isCustomSelected,
+                  currentCustomSize:
+                      isCustomSelected ? selectedSize : customSize,
                   onCustomSize: onSizeChanged,
                 );
               }
@@ -71,15 +77,35 @@ class _SizeChip extends StatelessWidget {
     required this.onTap,
   });
 
-  IconData _getGlassIcon() {
-    if (sizeMl <= 150) return Icons.local_cafe;
-    if (sizeMl <= 350) return Icons.water_drop;
-    if (sizeMl <= 500) return Icons.local_drink;
-    return Icons.sports_bar;
+  Widget _buildContainerIcon(Color color) {
+    final filter = ColorFilter.mode(color, BlendMode.srcIn);
+    if (sizeMl <= 100) {
+      return SvgPicture.asset(
+        'assets/images/drop_d1.svg',
+        width: 18,
+        height: 18,
+        colorFilter: filter,
+      );
+    } else if (sizeMl <= 250) {
+      return SvgPicture.asset(
+        'assets/images/glass.svg',
+        width: 20,
+        height: 20,
+        colorFilter: filter,
+      );
+    } else {
+      return Icon(
+        Icons.sports_bar_rounded,
+        size: 22,
+        color: color,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final activeColor = isSelected ? Colors.black : AppColors.textMuted;
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -88,35 +114,34 @@ class _SizeChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
-        width: 72,
+        width: 74,
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : AppColors.surface,
+          color: isSelected ? Colors.white : AppColors.card,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: isSelected
-                ? AppColors.primary.withValues(alpha: 0.5)
-                : AppColors.surfaceLight.withValues(alpha: 0.5),
-            width: isSelected ? 1.5 : 1,
+            color: isSelected ? Colors.white : AppColors.borderSubtle,
+            width: 1.0,
           ),
+          boxShadow: isSelected ? AppColors.whitePillShadow : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              _getGlassIcon(),
-              color: isSelected ? AppColors.primary : AppColors.textTertiary,
-              size: 22,
+            SizedBox(
+              width: 22,
+              height: 22,
+              child: Center(
+                child: _buildContainerIcon(activeColor),
+              ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               '${sizeMl}ml',
               style: TextStyle(
                 fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color:
-                    isSelected ? AppColors.primary : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? Colors.black : AppColors.textSecondary,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ],
@@ -145,13 +170,17 @@ class _CustomSizeChip extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.xl),
+          side: const BorderSide(color: AppColors.borderSubtle, width: 1.0),
         ),
         title: const Text(
           'Custom Size',
-          style: TextStyle(color: AppColors.textPrimary),
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
         ),
         content: TextField(
           controller: controller,
@@ -160,21 +189,27 @@ class _CustomSizeChip extends StatelessWidget {
           style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 18,
+            fontWeight: FontWeight.w700,
           ),
           decoration: InputDecoration(
-            hintText: 'Enter amount in ml',
-            hintStyle: TextStyle(
-              color: AppColors.textTertiary.withValues(alpha: 0.5),
+            hintText: 'Enter amount',
+            hintStyle: const TextStyle(
+              color: AppColors.textMuted,
             ),
             suffixText: 'ml',
-            suffixStyle: const TextStyle(color: AppColors.textSecondary),
+            suffixStyle: const TextStyle(
+              color: AppColors.textMuted,
+              fontWeight: FontWeight.w700,
+            ),
+            filled: true,
+            fillColor: AppColors.cardLight,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: AppColors.surfaceLight),
+              borderSide: const BorderSide(color: AppColors.borderSubtle),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: AppColors.primary),
+              borderSide: const BorderSide(color: AppColors.emeraldPrimary, width: 1.5),
             ),
           ),
           inputFormatters: [
@@ -200,8 +235,8 @@ class _CustomSizeChip extends StatelessWidget {
             child: const Text(
               'Set',
               style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
+                color: AppColors.emeraldBright,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
@@ -220,37 +255,32 @@ class _CustomSizeChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
-        width: 72,
+        width: 74,
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.secondary.withValues(alpha: 0.15)
-              : AppColors.surface,
+          color: isSelected ? Colors.white : AppColors.card,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: isSelected
-                ? AppColors.secondary.withValues(alpha: 0.5)
-                : AppColors.surfaceLight.withValues(alpha: 0.3),
-            width: isSelected ? 1.5 : 1,
-            strokeAlign: BorderSide.strokeAlignInside,
+            color: isSelected ? Colors.white : AppColors.borderSubtle,
+            width: 1.0,
           ),
+          boxShadow: isSelected ? AppColors.whitePillShadow : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.tune,
-              color: isSelected ? AppColors.secondary : AppColors.textTertiary,
+              Icons.tune_rounded,
+              color: isSelected ? Colors.black : AppColors.textMuted,
               size: 22,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               isSelected ? '${currentCustomSize}ml' : 'Custom',
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected
-                    ? AppColors.secondary
-                    : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? Colors.black : AppColors.textSecondary,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ],

@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../models/user_profile.dart';
 import '../providers/water_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_time_picker.dart';
-
-import 'package:aqua_reminder/widgets/fade_indexed_stack.dart';
+import '../widgets/atmospheric_background.dart';
+import '../widgets/fade_indexed_stack.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -96,94 +95,154 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     await showDialog(
       context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.82),
       builder: (BuildContext context) {
         TimeOfDay tempPicked = initialTime;
+        final themeColor = isWake ? AppColors.warning : AppColors.cyanBright;
+
         return Dialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(AppRadius.xl * 1.2),
+              color: const Color(0xFF070707),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: AppColors.surfaceLight,
-                width: 2,
+                color: themeColor.withValues(alpha: 0.22),
+                width: 1.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 32,
-                  offset: const Offset(0, 16),
+                  color: Colors.black.withValues(alpha: 0.8),
+                  blurRadius: 40,
+                  offset: const Offset(0, 20),
+                ),
+                BoxShadow(
+                  color: themeColor.withValues(alpha: 0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.xl * 1.2),
+              borderRadius: BorderRadius.circular(24),
               child: Stack(
                 children: [
+                  // Subtle atmospheric radial glow at top
                   Positioned(
-                    top: -20,
-                  right: -30,
-                  child: Icon(
-                    isWake ? Icons.wb_sunny_rounded : Icons.nights_stay_rounded,
-                    size: 180,
-                    color: (isWake ? AppColors.warning : AppColors.primary)
-                        .withValues(alpha: 0.05),
+                    top: -60,
+                    left: 0,
+                    right: 0,
+                    height: 160,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: Alignment.topCenter,
+                            radius: 1.0,
+                            colors: [
+                              themeColor.withValues(alpha: 0.12),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(28),
-                  child: SingleChildScrollView(
+
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Header
+                        // 1. Header with squircle badge
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              isWake
-                                  ? Icons.wb_sunny_rounded
-                                  : Icons.nights_stay_rounded,
-                              color: isWake
-                                  ? AppColors.warning
-                                  : AppColors.primary,
-                              size: 28,
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF111111),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: themeColor.withValues(alpha: 0.3),
+                                  width: 1.0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: themeColor.withValues(alpha: 0.15),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                isWake
+                                    ? Icons.wb_sunny_rounded
+                                    : Icons.nights_stay_rounded,
+                                color: themeColor,
+                                size: 18,
+                              ),
                             ),
-                            const SizedBox(width: 12),
-                            Text(
-                              isWake ? 'Wake Up Time' : 'Sleep Time',
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.5,
+                            const SizedBox(width: 10),
+                            IntrinsicWidth(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    isWake ? 'Wake Up Time' : 'Sleep Time',
+                                    style: const TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    height: 2.0,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(1),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                        colors: [
+                                          themeColor,
+                                          themeColor,
+                                          themeColor.withValues(alpha: 0.75),
+                                          themeColor.withValues(alpha: 0.35),
+                                          themeColor.withValues(alpha: 0.08),
+                                          Colors.transparent,
+                                        ],
+                                        stops: const [0.0, 0.50, 0.72, 0.88, 0.97, 1.0],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Set your personal daily schedule',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: AppColors.textSecondary.withValues(alpha: 0.8),
-                            fontSize: 15,
-                          ),
-                        ),
                         const SizedBox(height: 12),
 
-                        // Custom Time Picker
+                        // 2. Custom Time Picker (single box layout, no inner box border)
                         CustomTimePicker(
                           initialTime: initialTime,
+                          showBorder: false,
+                          backgroundColor: Colors.transparent,
+                          fadeColor: const Color(0xFF070707),
+                          accentColor: themeColor,
                           onChanged: (TimeOfDay newTime) {
                             tempPicked = newTime;
                           },
                         ),
-                        const SizedBox(height: 36),
+                        const SizedBox(height: 16),
 
-                        // Action Buttons
+                        // 3. Action Buttons
                         Row(
                           children: [
                             Expanded(
@@ -194,17 +253,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
+                                    vertical: 14,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.surfaceLight.withValues(
-                                      alpha: 0.5,
-                                    ),
+                                    color: const Color(0xFF111111),
                                     borderRadius: BorderRadius.circular(
                                       AppRadius.md,
                                     ),
                                     border: Border.all(
-                                      color: AppColors.surfaceLight,
+                                      color: AppColors.borderSubtle,
+                                      width: 1.0,
                                     ),
                                   ),
                                   child: const Text(
@@ -212,14 +270,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: AppColors.textSecondary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: GestureDetector(
                                 onTap: () {
@@ -229,33 +287,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
+                                    vertical: 14,
                                   ),
                                   decoration: BoxDecoration(
-                                    gradient: AppColors.primaryGradient,
+                                    gradient: isWake
+                                        ? const LinearGradient(
+                                            colors: [
+                                              Color(0xFFFBBF24),
+                                              Color(0xFFF59E0B),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          )
+                                        : AppColors.heroCtaGradient,
                                     borderRadius: BorderRadius.circular(
                                       AppRadius.md,
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.primary.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                      blurRadius: 16,
-                                      offset: const Offset(0, 6),
+                                    boxShadow: isWake
+                                        ? [
+                                            BoxShadow(
+                                              color: const Color(0xFFF59E0B)
+                                                  .withValues(alpha: 0.35),
+                                              blurRadius: 16,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ]
+                                        : AppColors.heroCtaShadow,
+                                  ),
+                                  child: const Text(
+                                    'Save',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
                                     ),
-                                  ],
-                                ),
-                                child: const Text(
-                                  'Save',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: AppColors.background,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                              ),
                               ),
                             ),
                           ],
@@ -263,9 +331,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
             ),
           ),
         );
@@ -430,119 +497,116 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       resizeToAvoidBottomInset: false, // Prevents layout snapping during swiping lag when keyboard dismisses
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Progress indicator
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-              child: Row(
-                children: List.generate(5, (index) {
-                  return Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(right: index < 4 ? 8 : 0),
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: index <= _currentPage
-                            ? AppColors.primary
-                            : AppColors.surfaceLight,
-                        borderRadius: BorderRadius.circular(2),
+      body: AtmosphericBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Progress indicator
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                child: Row(
+                  children: List.generate(5, (index) {
+                    return Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(right: index < 4 ? 8 : 0),
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: index <= _currentPage
+                              ? AppColors.emeraldBright
+                              : AppColors.cardLight,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
+                ),
               ),
-            ),
 
-            // Pages
-            Expanded(
-              child: FadeIndexedStack(
-                index: _currentPage,
-                alignment: Alignment.center,
-                duration: const Duration(milliseconds: 250),
-                children: [
-                  _buildWelcomePage(),
-                  _buildNameUnitPage(),
-                  _buildGenderPage(),
-                  _buildBodyInfoPage(),
-                  _buildGoalPage(),
-                ],
+              // Pages
+              Expanded(
+                child: FadeIndexedStack(
+                  index: _currentPage,
+                  alignment: Alignment.center,
+                  duration: const Duration(milliseconds: 250),
+                  children: [
+                    _buildWelcomePage(),
+                    _buildNameUnitPage(),
+                    _buildGenderPage(),
+                    _buildBodyInfoPage(),
+                    _buildGoalPage(),
+                  ],
+                ),
               ),
-            ),
 
-            // Navigation buttons
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutCubic,
-                    child: _currentPage > 0
-                        ? Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: GestureDetector(
-                              onTap: _prevPage,
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
-                                  border: Border.all(
-                                    color: AppColors.surfaceLight.withValues(
-                                      alpha: 0.5,
+              // Navigation buttons
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Row(
+                  children: [
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      child: _currentPage > 0
+                          ? Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: GestureDetector(
+                                onTap: _prevPage,
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.card,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: AppColors.borderSubtle,
+                                      width: 1.0,
                                     ),
                                   ),
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_back,
-                                  color: AppColors.textSecondary,
-                                  size: 20,
+                                  child: const Icon(
+                                    Icons.arrow_back_rounded,
+                                    color: AppColors.textPrimary,
+                                    size: 20,
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
-                        : const SizedBox(width: 0),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        _currentPage == 4 ? _complete() : _nextPage();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.3),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: Text(
-                            _currentPage == 4 ? 'Get Started' : 'Continue',
-                            key: ValueKey(_currentPage == 4 ? 'Get Started' : 'Continue'),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: AppColors.background,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                            )
+                          : const SizedBox(width: 0),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          _currentPage == 4 ? _complete() : _nextPage();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          decoration: BoxDecoration(
+                            // Fortify Hero CTA Button Recipe (Section 3.B)
+                            gradient: AppColors.heroCtaGradient,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: AppColors.heroCtaShadow,
+                          ),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: Text(
+                              _currentPage == 4 ? 'Get Started' : 'Continue',
+                              key: ValueKey(_currentPage == 4 ? 'Get Started' : 'Continue'),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.2,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -555,114 +619,107 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Dynamic Artwork Header
-          SizedBox(
-            height: 300,
-            width: double.infinity,
-            child: Stack(
-              alignment: Alignment.center,
-              clipBehavior: Clip.none,
-              children: [
-                // Background glowing blob
-                Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary,
-                        AppColors.primaryLight.withValues(alpha: 0.5)
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.4),
-                        blurRadius: 80,
-                        spreadRadius: 20,
-                      ),
-                    ],
-                  ),
+          // Main Water Drop Center Lens with Cyan Light Ring (195x195)
+          Container(
+            width: 195,
+            height: 195,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const RadialGradient(
+                center: Alignment.center,
+                radius: 0.85,
+                colors: [
+                  Color(0xFF0F1E22), // Deep obsidian with subtle oceanic depth
+                  AppColors.background, // Seamless obsidian perimeter matching app background
+                ],
+              ),
+              border: Border.all(
+                color: AppColors.cyanBright, // Bright variant cyan light border
+                width: 2.2,
+              ),
+              boxShadow: [
+                // Cyan light emission along the ring perimeter
+                BoxShadow(
+                  color: AppColors.cyanBright.withValues(alpha: 0.65),
+                  blurRadius: 16,
+                  spreadRadius: 2.0,
                 ),
-                // Main Water Drop Logo Center
-                Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.transparent,
-                    border: Border.all(color: AppColors.surfaceLight.withValues(alpha: 0.8), width: 2),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: SvgPicture.asset(
-                      'assets/images/logo_white.svg',
+                BoxShadow(
+                  color: AppColors.cyanBright.withValues(alpha: 0.25),
+                  blurRadius: 32,
+                  spreadRadius: 4.0,
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Center(
+                  child: Transform.scale(
+                    scale: 1.08, // Scaled in direct proportion to the enlarged circle
+                    child: Image.asset(
+                      'assets/images/icon_no_glow.png',
                       fit: BoxFit.contain,
                     ),
                   ),
                 ),
-                // Floating Badge 1: Goal
-                const Positioned(
-                  top: 20,
-                  right: 0,
-                  child: _FloatingBadge(
-                    icon: Icons.auto_graph_rounded,
-                    text: 'Smart Tracking',
-                  ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 50),
+
+          // Headline
+          const Text(
+            'Hydrate Right,\nEvery Time!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 38,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textPrimary,
+              letterSpacing: -1.0,
+              height: 1.15,
+            ),
+          ),
+          
+          const SizedBox(height: 22),
+
+          // Badges placed side-by-side just below the headline
+          const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _FloatingBadge(
+                  icon: Icons.auto_graph_rounded,
+                  text: 'Smart Tracking',
                 ),
-                // Floating Badge 2: Hydration
-                const Positioned(
-                  bottom: 50,
-                  left: -10,
-                  child: _FloatingBadge(
-                    icon: Icons.health_and_safety_rounded,
-                    text: 'Build Habits',
-                  ),
-                ),
-                // Floating Badge 3: Notifications
-                const Positioned(
-                  bottom: 15,
-                  right: 15,
-                  child: _FloatingBadge(
-                    icon: Icons.notifications_active_rounded,
-                    text: 'Timely Alerts',
-                  ),
+                SizedBox(width: 12),
+                _FloatingBadge(
+                  icon: Icons.notifications_active_rounded,
+                  text: 'Timely Alerts',
                 ),
               ],
             ),
           ),
-          
-          const SizedBox(height: 56),
-          
-          // Typography
-          const Text(
-            'Master Your\nHabits',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 42,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
-              letterSpacing: -1.0,
-              height: 1.1,
-            ),
-          ),
-          const SizedBox(height: 20),
+
+          const SizedBox(height: 34),
+
+          // Subtitle description
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               'Achieve your daily water goals with intelligent reminders and beautiful visual tracking.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 color: AppColors.textSecondary,
-                height: 1.6,
+                height: 1.5,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -701,10 +758,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 color: AppColors.textTertiary.withValues(alpha: 0.5),
               ),
               filled: true,
-              fillColor: AppColors.surface,
+              fillColor: AppColors.card,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                borderSide: const BorderSide(color: AppColors.surfaceLight),
+                borderSide: const BorderSide(color: AppColors.borderSubtle),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
@@ -1058,24 +1115,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: AppColors.card,
               borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.2),
+                color: AppColors.borderSubtle,
+                width: 1.0,
               ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _SelectedValue(label: 'Age', value: '$_age yrs'),
-                Container(height: 24, width: 1, color: AppColors.surfaceLight),
+                Container(height: 24, width: 1, color: AppColors.borderSubtle),
                 _SelectedValue(
                   label: 'Height',
                   value: _heightUnit == HeightUnit.cm
                       ? '$_heightValue cm'
                       : '${_heightValue ~/ 12}\'${_heightValue % 12}"',
                 ),
-                Container(height: 24, width: 1, color: AppColors.surfaceLight),
+                Container(height: 24, width: 1, color: AppColors.borderSubtle),
                 _SelectedValue(
                   label: 'Weight',
                   value: _weightUnit == WeightUnit.kg
@@ -1167,173 +1225,156 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               height: 280,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.xl * 1.5),
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.25),
-                  width: 2,
+                  color: AppColors.borderSubtle,
+                  width: 1.0,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    blurRadius: 32,
-                    offset: const Offset(0, 16),
-                  ),
-                ],
               ),
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
                   // Decorative background icon
-                Positioned(
-                  top: -20,
-                  right: -30,
-                  child: Icon(
-                    Icons.water_drop,
-                    size: 220,
-                    color: AppColors.primary.withValues(alpha: 0.04),
+                  Positioned(
+                    top: -20,
+                    right: -30,
+                    child: Icon(
+                      Icons.water_drop_rounded,
+                      size: 220,
+                      color: AppColors.emeraldPrimary.withValues(alpha: 0.04),
+                    ),
                   ),
-                ),
 
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          IntrinsicWidth(
-                            child: TextField(
-                              controller: _goalController,
-                              focusNode: _goalFocusNode,
-                              keyboardType: TextInputType.number,
-                              showCursor: true,
-                              readOnly: !_isGoalEditing,
-                              onTap: () {
-                                if (!_isGoalEditing) {
-                                  setState(() => _isGoalEditing = true);
-                                  Future.delayed(const Duration(milliseconds: 50), () {
-                                    SystemChannels.textInput.invokeMethod('TextInput.show');
-                                  });
-                                }
-                              },
-                              cursorColor: AppColors.primary,
-                              cursorWidth: 3,
-                              cursorHeight: 60,
-                              cursorRadius: const Radius.circular(2),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              textAlign: TextAlign.center,
-                              onChanged: (val) => setState(() {}),
-                              style: TextStyle(
-                                fontSize: 68,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textPrimary,
-                                letterSpacing: -2,
-                                shadows: [
-                                  Shadow(
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.2,
-                                    ),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
+                  // Content
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            IntrinsicWidth(
+                              child: TextField(
+                                controller: _goalController,
+                                focusNode: _goalFocusNode,
+                                keyboardType: TextInputType.number,
+                                showCursor: true,
+                                readOnly: !_isGoalEditing,
+                                onTap: () {
+                                  if (!_isGoalEditing) {
+                                    setState(() => _isGoalEditing = true);
+                                    Future.delayed(const Duration(milliseconds: 50), () {
+                                      SystemChannels.textInput.invokeMethod('TextInput.show');
+                                    });
+                                  }
+                                },
+                                cursorColor: AppColors.emeraldBright,
+                                cursorWidth: 3,
+                                cursorHeight: 60,
+                                cursorRadius: const Radius.circular(2),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
                                 ],
-                              ),
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _unit == MeasureUnit.oz ? 'oz' : 'ml',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textTertiary.withValues(
-                                alpha: 0.8,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Unit label
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                          border: Border.all(color: AppColors.surfaceLight),
-                        ),
-                        child: Text(
-                          _unit == MeasureUnit.oz
-                              ? 'ounces per day'
-                              : 'milliliters per day',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Estimation
-                      Builder(
-                        builder: (context) {
-                          final parsed =
-                              int.tryParse(_goalController.text) ?? 0;
-                          final glasses = _unit == MeasureUnit.oz
-                              ? (parsed / 8).round()
-                              : (parsed / 250).round();
-
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.local_cafe_outlined,
-                                size: 20,
-                                color: AppColors.textTertiary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                parsed == 0
-                                    ? 'Enter a valid amount'
-                                    : '≈ $glasses regular glasses',
+                                textAlign: TextAlign.center,
+                                onChanged: (val) => setState(() {}),
                                 style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: 68,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textPrimary,
+                                  letterSpacing: -2,
+                                  fontFeatures: [FontFeature.tabularFigures()],
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
                                 ),
                               ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _unit == MeasureUnit.oz ? 'oz' : 'ml',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Unit label
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.card,
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
+                            border: Border.all(color: AppColors.borderSubtle),
+                          ),
+                          child: Text(
+                            _unit == MeasureUnit.oz
+                                ? 'ounces per day'
+                                : 'milliliters per day',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Estimation
+                        Builder(
+                          builder: (context) {
+                            final parsed =
+                                int.tryParse(_goalController.text) ?? 0;
+                            final glasses = _unit == MeasureUnit.oz
+                                ? (parsed / 8).round()
+                                : (parsed / 250).round();
+
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.local_cafe_rounded,
+                                  size: 18,
+                                  color: AppColors.emeraldBright,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  parsed == 0
+                                      ? 'Enter a valid amount'
+                                      : '≈ $glasses regular glasses',
+                                  style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           ), // Closing GestureDetector
 
-          const SizedBox(height: 48),
+          const SizedBox(height: 36),
 
           // Reset to suggested
           GestureDetector(
@@ -1353,23 +1394,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.1),
+                color: AppColors.card,
                 borderRadius: BorderRadius.circular(AppRadius.pill),
                 border: Border.all(
-                  color: AppColors.secondary.withValues(alpha: 0.2),
+                  color: AppColors.borderSubtleCyan,
                 ),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.refresh, color: AppColors.secondary, size: 18),
+                  Icon(Icons.refresh_rounded, color: AppColors.emeraldBright, size: 18),
                   SizedBox(width: 8),
                   Text(
                     'Reset to suggested',
                     style: TextStyle(
-                      color: AppColors.secondary,
+                      color: AppColors.emeraldBright,
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -1383,21 +1424,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.waterBlue.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(AppRadius.md),
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppColors.waterBlue.withValues(alpha: 0.2),
+                color: AppColors.borderSubtle,
               ),
             ),
-            child: Row(
+            child: const Row(
               children: [
                 Icon(
-                  Icons.info_outline,
-                  color: AppColors.waterBlue.withValues(alpha: 0.8),
+                  Icons.info_outline_rounded,
+                  color: AppColors.emeraldBright,
                   size: 20,
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
+                SizedBox(width: 12),
+                Expanded(
                   child: Text(
                     'You can always change your daily goal later in the Profile tab.',
                     style: TextStyle(
@@ -1439,63 +1480,91 @@ class _TimeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final timeParts = time.trim().split(' ');
+    final timeValue = timeParts.isNotEmpty ? timeParts[0] : time;
+    final timePeriod = timeParts.length > 1 ? timeParts[1] : '';
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
         onTap();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.surfaceLight.withValues(alpha: 0.5),
-            width: 1.5,
+            color: AppColors.borderSubtle,
+            width: 1.0,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: iconColor, size: 24),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.borderSubtle,
+                      width: 1.0,
                     ),
                   ),
-                  Text(
-                    time,
+                  child: Icon(icon, color: iconColor, size: 16),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    label,
                     style: const TextStyle(
-                      fontSize: 18,
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,
+                      fontSize: 12,
+                      color: AppColors.textMuted,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    timeValue,
+                    style: const TextStyle(
+                      fontSize: 19,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  if (timePeriod.isNotEmpty) ...[
+                    const SizedBox(width: 5),
+                    Text(
+                      timePeriod,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1528,18 +1597,15 @@ class _UnitOption extends StatelessWidget {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.08)
-              : AppColors.surfaceLight.withValues(alpha: 0.3),
+          color: isSelected ? Colors.white : AppColors.card,
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(
-            color: isSelected
-                ? AppColors.primary.withValues(alpha: 0.4)
-                : Colors.transparent,
-            width: 1.5,
+            color: isSelected ? Colors.white : AppColors.borderSubtle,
+            width: 1.0,
           ),
+          boxShadow: isSelected ? AppColors.whitePillShadow : null,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1547,22 +1613,20 @@ class _UnitOption extends StatelessWidget {
             Text(
               subtitle,
               style: TextStyle(
-                color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                fontWeight: FontWeight.w700,
+                color: isSelected ? Colors.black : AppColors.textPrimary,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                 fontSize: 16,
-                letterSpacing: -0.5,
+                letterSpacing: -0.3,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             if (label.isNotEmpty) ...[
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected
-                      ? AppColors.primary.withValues(alpha: 0.8)
-                      : AppColors.textTertiary,
+                  color: isSelected ? Colors.black87 : AppColors.textMuted,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1601,37 +1665,33 @@ class _GenderOption extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : AppColors.surfaceLight.withValues(alpha: 0.35),
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : AppColors.primary.withValues(alpha: 0.1),
-            width: isSelected ? 1.5 : 1,
+            color: isSelected ? AppColors.emeraldPrimary : AppColors.borderSubtle,
+            width: isSelected ? 1.5 : 1.0,
           ),
         ),
         child: Row(
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.primary : AppColors.textSecondary,
-              size: 24,
+              color: isSelected ? AppColors.emeraldBright : AppColors.textSecondary,
+              size: 22,
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                  color: isSelected ? AppColors.emeraldBright : AppColors.textPrimary,
                   fontSize: 16,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                 ),
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+              const Icon(Icons.check_circle_rounded, color: AppColors.emeraldBright, size: 20),
           ],
         ),
       ),
@@ -1689,44 +1749,33 @@ class _WheelPicker extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Wheel container with glassmorphism
+        // Wheel container with Fortify card surface & hairline border
         Container(
           height: 320,
           decoration: BoxDecoration(
-            color: AppColors.surface.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(AppRadius.xl),
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color: AppColors.borderSubtle,
+              width: 1.0,
             ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.xl),
+            borderRadius: BorderRadius.circular(20),
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Selection highlight bar ΓÇö glowing
+                // Selection highlight bar with subtle emerald perimeter
                 Container(
                   height: 48,
                   margin: const EdgeInsets.symmetric(horizontal: 8),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary.withValues(alpha: 0.12),
-                        AppColors.primary.withValues(alpha: 0.06),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                      width: 1.5,
+                      color: AppColors.borderSubtleCyan,
+                      width: 1.0,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.08),
-                        blurRadius: 16,
-                        spreadRadius: 2,
-                      ),
-                    ],
                   ),
                 ),
                 // Scroll wheel
@@ -1751,14 +1800,13 @@ class _WheelPicker extends StatelessWidget {
                           style: TextStyle(
                             fontSize: isSelected ? 24 : 16,
                             fontWeight: isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w400,
+                                ? FontWeight.w800
+                                : FontWeight.w500,
                             color: isSelected
-                                ? AppColors.textPrimary
-                                : AppColors.textSecondary.withValues(
-                                    alpha: 0.7,
-                                  ),
+                                ? AppColors.emeraldBright
+                                : AppColors.textMuted,
                             letterSpacing: isSelected ? -0.5 : 0,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                           child: Text(itemBuilder(index)),
                         ),
@@ -1778,9 +1826,9 @@ class _WheelPicker extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            AppColors.background,
-                            AppColors.background.withValues(alpha: 0.6),
-                            AppColors.background.withValues(alpha: 0),
+                            AppColors.card,
+                            AppColors.card.withValues(alpha: 0.6),
+                            AppColors.card.withValues(alpha: 0),
                           ],
                           stops: const [0, 0.5, 1],
                         ),
@@ -1800,9 +1848,9 @@ class _WheelPicker extends StatelessWidget {
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
                           colors: [
-                            AppColors.background,
-                            AppColors.background.withValues(alpha: 0.6),
-                            AppColors.background.withValues(alpha: 0),
+                            AppColors.card,
+                            AppColors.card.withValues(alpha: 0.6),
+                            AppColors.card.withValues(alpha: 0),
                           ],
                           stops: const [0, 0.5, 1],
                         ),
@@ -1819,10 +1867,10 @@ class _WheelPicker extends StatelessWidget {
         // Unit label
         Text(
           unit,
-          style: TextStyle(
-            color: AppColors.primary.withValues(alpha: 0.7),
+          style: const TextStyle(
+            color: AppColors.emeraldBright,
             fontSize: 13,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             letterSpacing: 0.3,
           ),
         ),
@@ -1844,15 +1892,20 @@ class _SelectedValue extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            color: AppColors.primary,
+            color: AppColors.emeraldBright,
             fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
+            fontFeatures: [FontFeature.tabularFigures()],
           ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+          style: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -1867,66 +1920,54 @@ class _FloatingBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.pill),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-            border: Border.all(color: AppColors.surfaceLight.withValues(alpha: 0.5), width: 1.5),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 18, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(
-                text,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PremiumShimmerLogo extends StatelessWidget {
-  const _PremiumShimmerLogo();
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      width: 280,
-      height: 200, // Reduced height to crop out white space
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryLight.withValues(alpha: 0.15),
-            blurRadius: 100,
-            spreadRadius: 20,
+            color: Colors.black.withValues(alpha: 0.45),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
           ),
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            blurRadius: 60,
-            spreadRadius: -10,
+            color: AppColors.cyanBright.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
-      child: SvgPicture.asset(
-        'assets/images/icon_cyan.svg',
-        fit: BoxFit.cover,
-        alignment: Alignment.center,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8.5),
+            decoration: BoxDecoration(
+              color: AppColors.card.withValues(alpha: 0.82),
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              border: Border.all(
+                color: AppColors.borderSubtle,
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 15, color: AppColors.cyanBright),
+                const SizedBox(width: 7),
+                Text(
+                  text,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

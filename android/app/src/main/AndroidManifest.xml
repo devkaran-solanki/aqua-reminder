@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
-        android:label="Aqua Reminder"
+        android:label="AQUÉA"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

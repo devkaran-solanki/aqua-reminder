@@ -5,7 +5,6 @@ import '../models/water_entry.dart';
 import '../providers/water_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/intake_chart.dart';
-import 'package:animated_flip_counter/animated_flip_counter.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -39,49 +38,53 @@ class _ReportsScreenState extends State<ReportsScreen>
         children: [
           // Header
           const Padding(
-            padding: EdgeInsets.fromLTRB(20, 16, 20, 20),
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 16),
             child: Text(
               'Reports',
               style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
                 letterSpacing: -0.5,
               ),
             ),
           ),
 
-          // Tab Bar
+          // Tab Bar (Inverted White Pill from Fortify Spec Section 3.C)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
+              height: 44,
+              padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.md),
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                border: Border.all(
+                  color: AppColors.borderSubtle,
+                  width: 1.0,
+                ),
               ),
               child: TabBar(
                 controller: _tabController,
                 overlayColor: WidgetStateProperty.all(Colors.transparent),
                 splashFactory: NoSplash.splashFactory,
                 indicator: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.4),
-                  ),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  boxShadow: AppColors.whitePillShadow,
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
-                indicatorPadding: const EdgeInsets.all(4),
                 dividerColor: Colors.transparent,
-                labelColor: AppColors.primary,
-                unselectedLabelColor: AppColors.textTertiary,
+                labelColor: Colors.black,
+                unselectedLabelColor: AppColors.textSecondary,
                 labelStyle: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                  letterSpacing: -0.2,
                 ),
                 unselectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
                 ),
                 tabs: _tabs.map((t) => Tab(text: t)).toList(),
               ),
@@ -151,32 +154,34 @@ class _ReportsTabViewState extends State<_ReportsTabView>
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
             
-            // Chart
+            // Chart Card (Fortify #101512 with 10% white hairline)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
                   height: 260,
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: AppColors.surfaceLight.withValues(alpha: 0.5),
+                      color: AppColors.borderSubtle,
+                      width: 1.0,
                     ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _getChartTitle(),
+                        _getChartTitle().toUpperCase(),
                         style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                          color: AppColors.textMuted,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Expanded(
                         child: _buildChart(provider),
                       ),
@@ -194,7 +199,7 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                 child: _buildDetailedBreakdown(provider),
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            const SliverToBoxAdapter(child: SizedBox(height: 124)),
           ],
         );
       },
@@ -210,15 +215,16 @@ class _ReportsTabViewState extends State<_ReportsTabView>
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.6,
+      childAspectRatio: 1.45,
       children: stats.map((stat) {
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: stat.color.withValues(alpha: 0.2),
+              color: AppColors.borderSubtle,
+              width: 1.0,
             ),
           ),
           child: Column(
@@ -228,34 +234,46 @@ class _ReportsTabViewState extends State<_ReportsTabView>
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
-                      color: stat.color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      color: AppColors.cardElevated,
+                      borderRadius: BorderRadius.circular(9),
+                      border: Border.all(
+                        color: AppColors.borderSubtle,
+                        width: 1.0,
+                      ),
                     ),
                     child: Icon(stat.icon, color: stat.color, size: 16),
                   ),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
-                      stat.label,
+                      stat.label.toUpperCase(),
                       style: const TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
+                        color: AppColors.textMuted,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.0,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              Text(
-                stat.value,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  stat.value,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.6,
+                    height: 1.15,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
             ],
@@ -276,30 +294,30 @@ class _ReportsTabViewState extends State<_ReportsTabView>
 
         return [
           _StatData(
-            icon: Icons.water_drop,
+            icon: Icons.water_drop_rounded,
             label: 'Total Intake',
             value: _formatMl(dayIntake),
-            color: AppColors.waterBlue,
+            color: AppColors.emeraldBright,
           ),
           _StatData(
-            icon: Icons.flag,
+            icon: Icons.flag_rounded,
             label: 'Goal',
             value: _formatMl(goal),
-            color: AppColors.primary,
+            color: AppColors.emeraldPrimary,
           ),
           _StatData(
-            icon: Icons.format_list_numbered,
+            icon: Icons.format_list_numbered_rounded,
             label: 'Entries',
             value: '${dayEntries.length}',
-            color: AppColors.secondary,
+            color: AppColors.textPrimary,
           ),
           _StatData(
-            icon: Icons.percent,
+            icon: Icons.percent_rounded,
             label: 'Completion',
             value: '${(dayProgress * 100).toInt()}%',
             color: isGoalMet
-                ? AppColors.success
-                : AppColors.warning,
+                ? AppColors.emeraldBright
+                : AppColors.warmup,
           ),
         ];
       case 1: // Week
@@ -323,28 +341,28 @@ class _ReportsTabViewState extends State<_ReportsTabView>
 
         return [
           _StatData(
-            icon: Icons.water_drop,
+            icon: Icons.water_drop_rounded,
             label: 'Total Intake',
             value: _formatMl(totalWeek),
-            color: AppColors.waterBlue,
+            color: AppColors.emeraldBright,
           ),
           _StatData(
-            icon: Icons.show_chart,
+            icon: Icons.show_chart_rounded,
             label: 'Daily Average',
             value: _formatMl(avg),
-            color: AppColors.primary,
+            color: AppColors.emeraldPrimary,
           ),
           _StatData(
-            icon: Icons.emoji_events,
+            icon: Icons.emoji_events_rounded,
             label: 'Goals Met',
             value: '$goalDays / $goalMax',
-            color: AppColors.warning,
+            color: AppColors.warmup,
           ),
           _StatData(
-            icon: Icons.local_fire_department,
+            icon: Icons.local_fire_department_rounded,
             label: 'Streak',
             value: '${provider.currentStreak} days',
-            color: AppColors.error,
+            color: AppColors.warmup,
           ),
         ];
       case 2: // Month
@@ -363,28 +381,28 @@ class _ReportsTabViewState extends State<_ReportsTabView>
 
         return [
           _StatData(
-            icon: Icons.water_drop,
+            icon: Icons.water_drop_rounded,
             label: 'Total Intake',
             value: _formatMl(totalMonth),
-            color: AppColors.waterBlue,
+            color: AppColors.emeraldBright,
           ),
           _StatData(
-            icon: Icons.show_chart,
+            icon: Icons.show_chart_rounded,
             label: 'Daily Average',
             value: _formatMl(avg),
-            color: AppColors.primary,
+            color: AppColors.emeraldPrimary,
           ),
           _StatData(
-            icon: Icons.star,
+            icon: Icons.star_rounded,
             label: 'Best Day',
             value: _formatMl(bestDayIntake),
-            color: AppColors.warning,
+            color: AppColors.warmup,
           ),
           _StatData(
-            icon: Icons.local_fire_department,
+            icon: Icons.local_fire_department_rounded,
             label: 'Streak',
             value: '${provider.currentStreak} days',
-            color: AppColors.error,
+            color: AppColors.warmup,
           ),
         ];
       case 3: // Year
@@ -393,32 +411,36 @@ class _ReportsTabViewState extends State<_ReportsTabView>
         final totalYear = monthlyTotals.values.fold<int>(0, (a, b) => a + b);
         final monthsWithData = monthlyTotals.values.where((v) => v > 0).length;
         final avgMonthly = monthsWithData > 0 ? totalYear ~/ monthsWithData : 0;
-        final avgDaily = monthsWithData > 0 ? totalYear ~/ (monthsWithData * 30) : 0;
+        
+        int bestMonthIntake = 0;
+        for (var v in monthlyTotals.values) {
+          if (v > bestMonthIntake) bestMonthIntake = v;
+        }
 
         return [
           _StatData(
-            icon: Icons.water_drop,
+            icon: Icons.water_drop_rounded,
             label: 'Total Intake',
             value: _formatLiters(totalYear),
-            color: AppColors.waterBlue,
+            color: AppColors.emeraldBright,
           ),
           _StatData(
-            icon: Icons.calendar_month,
+            icon: Icons.calendar_month_rounded,
             label: 'Monthly Avg',
             value: _formatLiters(avgMonthly),
-            color: AppColors.primary,
+            color: AppColors.emeraldPrimary,
           ),
           _StatData(
-            icon: Icons.show_chart,
-            label: 'Daily Avg',
-            value: _formatMl(avgDaily),
-            color: AppColors.secondary,
+            icon: Icons.star_rounded,
+            label: 'Best Month',
+            value: _formatLiters(bestMonthIntake),
+            color: AppColors.warmup,
           ),
           _StatData(
-            icon: Icons.local_fire_department,
+            icon: Icons.local_fire_department_rounded,
             label: 'Streak',
             value: '${provider.currentStreak} days',
-            color: AppColors.error,
+            color: AppColors.warmup,
           ),
         ];
       default:
@@ -434,7 +456,9 @@ class _ReportsTabViewState extends State<_ReportsTabView>
       final Map<String, double> chartData = {};
       for (int i = 0; i < 24; i += 3) {
         double sum = 0;
-        for (int j = 0; j < 3; j++) sum += hourly[i + j] ?? 0;
+        for (int j = 0; j < 3; j++) {
+          sum += hourly[i + j] ?? 0;
+        }
         final hourFormat = DateFormat('h a').format(DateTime(2020, 1, 1, i));
         chartData[hourFormat] = sum;
       }
@@ -483,42 +507,52 @@ class _ReportsTabViewState extends State<_ReportsTabView>
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
           decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AppColors.borderSubtle,
+              width: 1.0,
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(20),
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
-                  color: AppColors.waterBlue.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+                  color: AppColors.cardElevated,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.borderSubtle,
+                    width: 1.0,
+                  ),
                 ),
-                child: Icon(
-                  Icons.show_chart,
-                  size: 40,
-                  color: AppColors.waterBlue.withValues(alpha: 0.6),
+                child: const Icon(
+                  Icons.show_chart_rounded,
+                  size: 26,
+                  color: AppColors.emeraldBright,
                 ),
               ),
-              const SizedBox(height: 24),
-              Text(
-                "No Hydration Data",
-                style: const TextStyle(
+              const SizedBox(height: 18),
+              const Text(
+                "NO HYDRATION DATA",
+                style: TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.1,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                _isToday(_selectedDate) ? "Start drinking to populate your stats!" : "No activities matched this date.",
+                _isToday(_selectedDate) ? "Start drinking to populate your stats!" : "No activities recorded for this date.",
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: AppColors.textTertiary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
+                  color: AppColors.textMuted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -527,35 +561,37 @@ class _ReportsTabViewState extends State<_ReportsTabView>
       }
 
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: AppColors.surfaceLight.withValues(alpha: 0.5),
+            color: AppColors.borderSubtle,
+            width: 1.0,
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Timeline',
+              'TIMELINE',
               style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+                color: AppColors.textMuted,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             ...entries.map((entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 10),
                   child: Row(
                     children: [
                       Container(
                         width: 8,
                         height: 8,
                         decoration: const BoxDecoration(
-                          color: AppColors.waterBlue,
+                          color: AppColors.emeraldBright,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -563,8 +599,9 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                       Text(
                         DateFormat('h:mm a').format(entry.timestamp),
                         style: const TextStyle(
-                          color: AppColors.textTertiary,
+                          color: AppColors.textMuted,
                           fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const Spacer(),
@@ -572,8 +609,9 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                         '${entry.amount} ml',
                         style: const TextStyle(
                           color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w800,
                           fontSize: 14,
+                          fontFeatures: [FontFeature.tabularFigures()],
                         ),
                       ),
                     ],
@@ -598,8 +636,8 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                          weekStart.day == currentWeekStart.day;
       
       final title = isThisWeek
-          ? 'This Week'
-          : '${DateFormat('MMM d').format(weekStart)} - ${DateFormat('MMM d').format(weekEnd)}';
+          ? 'THIS WEEK'
+          : '${DateFormat('MMM d').format(weekStart)} - ${DateFormat('MMM d').format(weekEnd)}'.toUpperCase();
           
       return _buildDailyBreakdownList(title, dailyTotals, provider.dailyGoalMl);
     }
@@ -613,7 +651,7 @@ class _ReportsTabViewState extends State<_ReportsTabView>
       final now = DateTime.now();
       final isThisMonth = date.year == now.year && date.month == now.month;
       return _buildDailyBreakdownList(
-          isThisMonth ? 'This Month' : DateFormat('MMMM yyyy').format(date), 
+          (isThisMonth ? 'THIS MONTH' : DateFormat('MMMM yyyy').format(date)).toUpperCase(), 
           dailyTotals, 
           provider.dailyGoalMl);
     }
@@ -630,26 +668,28 @@ class _ReportsTabViewState extends State<_ReportsTabView>
     ];
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.surfaceLight.withValues(alpha: 0.5),
+          color: AppColors.borderSubtle,
+          width: 1.0,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isThisYear ? 'This Year Breakdown' : '${date.year} Monthly Breakdown',
+            (isThisYear ? 'THIS YEAR BREAKDOWN' : '${date.year} MONTHLY BREAKDOWN').toUpperCase(),
             style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+              color: AppColors.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           ...List.generate(12, (i) {
             final month = i + 1;
             final total = monthlyTotals[month] ?? 0;
@@ -665,46 +705,46 @@ class _ReportsTabViewState extends State<_ReportsTabView>
               child: Row(
                 children: [
                    SizedBox(
-                    width: 70,
+                    width: 60,
                     child: Text(
                       monthNames[i].substring(0, 3),
                       style: TextStyle(
                         color: isMonthValid
                             ? AppColors.textSecondary
-                            : AppColors.textTertiary.withValues(alpha: 0.4),
+                            : AppColors.textMuted.withValues(alpha: 0.35),
                         fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                   Expanded(
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor:
-                            AppColors.surfaceLight.withValues(alpha: 0.3),
+                        backgroundColor: AppColors.cardLight,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           total >= monthGoal && isMonthValid
-                              ? AppColors.success
-                              : (isMonthValid ? AppColors.waterBlue : AppColors.surfaceLight.withValues(alpha: 0.3)),
+                              ? AppColors.emeraldBright
+                              : (isMonthValid ? AppColors.emeraldPrimary.withValues(alpha: 0.6) : AppColors.cardHover),
                         ),
-                        minHeight: 8,
+                        minHeight: 7,
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   SizedBox(
-                    width: 50,
+                    width: 55,
                     child: Text(
                       _formatLiters(total),
                       textAlign: TextAlign.right,
                       style: TextStyle(
                         color: isMonthValid
                             ? AppColors.textPrimary
-                            : AppColors.textTertiary.withValues(alpha: 0.4),
+                            : AppColors.textMuted.withValues(alpha: 0.35),
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w800,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
@@ -723,12 +763,13 @@ class _ReportsTabViewState extends State<_ReportsTabView>
       ..sort((a, b) => b.key.compareTo(a.key));
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.surfaceLight.withValues(alpha: 0.5),
+          color: AppColors.borderSubtle,
+          width: 1.0,
         ),
       ),
       child: Column(
@@ -737,12 +778,13 @@ class _ReportsTabViewState extends State<_ReportsTabView>
           Text(
             title,
             style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+              color: AppColors.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           ...sortedEntries.map((entry) {
             final isToday = _isToday(entry.key);
             final metGoal = entry.value >= goal;
@@ -754,32 +796,31 @@ class _ReportsTabViewState extends State<_ReportsTabView>
               child: Row(
                 children: [
                   SizedBox(
-                    width: 60,
+                    width: 65,
                     child: Text(
                       isToday
                           ? 'Today'
                           : DateFormat('E d').format(entry.key),
                       style: TextStyle(
                         color: isToday
-                            ? AppColors.primary
+                            ? AppColors.emeraldBright
                             : AppColors.textSecondary,
                         fontSize: 13,
                         fontWeight:
-                            isToday ? FontWeight.w600 : FontWeight.w400,
+                            isToday ? FontWeight.w800 : FontWeight.w500,
                       ),
                     ),
                   ),
                   Expanded(
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor:
-                            AppColors.surfaceLight.withValues(alpha: 0.3),
+                        backgroundColor: AppColors.cardLight,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          metGoal ? AppColors.success : AppColors.waterBlue,
+                          metGoal ? AppColors.emeraldBright : AppColors.cardHover,
                         ),
-                        minHeight: 8,
+                        minHeight: 7,
                       ),
                     ),
                   ),
@@ -791,18 +832,22 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                       textAlign: TextAlign.right,
                       style: TextStyle(
                         color: metGoal
-                            ? AppColors.success
+                            ? AppColors.emeraldBright
                             : AppColors.textPrimary,
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w800,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
                   if (metGoal)
                     const Padding(
-                      padding: EdgeInsets.only(left: 4),
-                      child: Icon(Icons.check_circle,
-                          color: AppColors.success, size: 16),
+                      padding: EdgeInsets.only(left: 6),
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.emeraldBright,
+                        size: 15,
+                      ),
                     ),
                 ],
               ),
@@ -971,14 +1016,24 @@ class _ReportsTabViewState extends State<_ReportsTabView>
               });
             }
             return Dialog(
-              backgroundColor: AppColors.surface,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xl)),
+              backgroundColor: AppColors.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: const BorderSide(color: AppColors.borderSubtle, width: 1.0),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Select Year', style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Select Year',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     SizedBox(
                       height: 300,
@@ -991,7 +1046,6 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
                         ),
-                        // Display year from 2000 to currentYear
                         itemCount: currentYear - 1999,
                         itemBuilder: (context, index) {
                           final year = 2000 + index;
@@ -1003,19 +1057,24 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                                 if (context.mounted) Navigator.of(context).pop(DateTime(year, 1, 1));
                               });
                             },
-                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            borderRadius: BorderRadius.circular(12),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: isSelected ? AppColors.primary : AppColors.surfaceLight.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(AppRadius.md),
-                                border: Border.all(color: isSelected ? AppColors.primary : Colors.transparent),
+                                color: isSelected ? Colors.white : AppColors.cardElevated,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected ? Colors.white : AppColors.borderSubtle,
+                                  width: 1.0,
+                                ),
+                                boxShadow: isSelected ? AppColors.whitePillShadow : null,
                               ),
                               alignment: Alignment.center,
                               child: Text(
                                 year.toString(),
                                 style: TextStyle(
-                                  color: isSelected ? AppColors.background : AppColors.textPrimary,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  color: isSelected ? Colors.black : AppColors.textPrimary,
+                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                  fontFeatures: const [FontFeature.tabularFigures()],
                                 ),
                               ),
                             ),
@@ -1046,8 +1105,11 @@ class _ReportsTabViewState extends State<_ReportsTabView>
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return Dialog(
-              backgroundColor: AppColors.surface,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xl)),
+              backgroundColor: AppColors.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: const BorderSide(color: AppColors.borderSubtle, width: 1.0),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -1057,20 +1119,25 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.chevron_left, color: AppColors.textSecondary),
+                          icon: const Icon(Icons.chevron_left_rounded, color: AppColors.textSecondary),
                           onPressed: () => setDialogState(() => selectedYear--),
                         ),
                         Text(
                           selectedYear.toString(),
-                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                          icon: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
                           onPressed: selectedYear < currentYear ? () => setDialogState(() => selectedYear++) : null,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     SizedBox(
                       height: 275,
                       width: 280,
@@ -1094,21 +1161,27 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                                 if (context.mounted) Navigator.of(context).pop(DateTime(selectedYear, month, 1));
                               });
                             },
-                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            borderRadius: BorderRadius.circular(12),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: isSelected ? AppColors.primary : (isDisabled ? AppColors.surface : AppColors.surfaceLight.withValues(alpha: 0.3)),
-                                borderRadius: BorderRadius.circular(AppRadius.md),
-                                border: Border.all(color: isSelected ? AppColors.primary : Colors.transparent),
+                                color: isSelected 
+                                    ? Colors.white 
+                                    : (isDisabled ? AppColors.cardLight.withValues(alpha: 0.5) : AppColors.cardElevated),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected ? Colors.white : AppColors.borderSubtle,
+                                  width: 1.0,
+                                ),
+                                boxShadow: isSelected ? AppColors.whitePillShadow : null,
                               ),
                               alignment: Alignment.center,
                               child: Text(
                                 monthNames[index],
                                 style: TextStyle(
                                   color: isSelected 
-                                      ? AppColors.background 
-                                      : (isDisabled ? AppColors.textTertiary.withValues(alpha: 0.3) : AppColors.textPrimary),
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                      ? Colors.black 
+                                      : (isDisabled ? AppColors.textMuted.withValues(alpha: 0.3) : AppColors.textPrimary),
+                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                                 ),
                               ),
                             ),
@@ -1174,8 +1247,11 @@ class _ReportsTabViewState extends State<_ReportsTabView>
             }
 
             return Dialog(
-              backgroundColor: AppColors.surface,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xl)),
+              backgroundColor: AppColors.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: const BorderSide(color: AppColors.borderSubtle, width: 1.0),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -1185,7 +1261,7 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.chevron_left, color: AppColors.textSecondary),
+                          icon: const Icon(Icons.chevron_left_rounded, color: AppColors.textSecondary),
                           onPressed: () {
                             setDialogState(() {
                               if (selectedMonth == 1) {
@@ -1199,10 +1275,14 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                         ),
                         Text(
                           DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth)),
-                          style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                          icon: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
                           onPressed: (selectedYear < currentYear || (selectedYear == currentYear && selectedMonth < currentMonth)) 
                               ? () {
                                   setDialogState(() {
@@ -1244,13 +1324,19 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                                 if (context.mounted) Navigator.of(context).pop(weekStart);
                               });
                             },
-                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            borderRadius: BorderRadius.circular(12),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                               decoration: BoxDecoration(
-                                color: isSelected ? AppColors.primary : (isFuture ? AppColors.surface : AppColors.surfaceLight.withValues(alpha: 0.3)),
-                                borderRadius: BorderRadius.circular(AppRadius.md),
-                                border: Border.all(color: isSelected ? AppColors.primary : Colors.transparent),
+                                color: isSelected 
+                                    ? Colors.white 
+                                    : (isFuture ? AppColors.cardLight.withValues(alpha: 0.5) : AppColors.cardElevated),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected ? Colors.white : AppColors.borderSubtle,
+                                  width: 1.0,
+                                ),
+                                boxShadow: isSelected ? AppColors.whitePillShadow : null,
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1258,15 +1344,15 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                                   Text(
                                     'Week ${index + 1}',
                                     style: TextStyle(
-                                      color: isSelected ? AppColors.background : (isFuture ? AppColors.textTertiary.withValues(alpha: 0.3) : AppColors.textPrimary),
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                      color: isSelected ? Colors.black : (isFuture ? AppColors.textMuted.withValues(alpha: 0.3) : AppColors.textPrimary),
+                                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
                                     ),
                                   ),
                                   Text(
                                     '${DateFormat('MMM d').format(weekStart)} - ${DateFormat('MMM d').format(weekEnd)}',
                                     style: TextStyle(
-                                      color: isSelected ? AppColors.background : (isFuture ? AppColors.textTertiary.withValues(alpha: 0.3) : AppColors.textSecondary),
-                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                      color: isSelected ? Colors.black : (isFuture ? AppColors.textMuted.withValues(alpha: 0.3) : AppColors.textSecondary),
+                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -1291,11 +1377,27 @@ class _ReportsTabViewState extends State<_ReportsTabView>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        IconButton(
-          onPressed: _previousPeriod,
-          icon: const Icon(Icons.chevron_left, color: AppColors.textPrimary),
+        GestureDetector(
+          onTap: _previousPeriod,
+          child: Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.cardElevated,
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(
+                color: AppColors.borderSubtle,
+                width: 1.0,
+              ),
+            ),
+            child: const Icon(
+              Icons.chevron_left_rounded,
+              color: AppColors.textPrimary,
+              size: 20,
+            ),
+          ),
         ),
-        InkWell(
+        GestureDetector(
           onTap: () async {
             DateTime? picked;
             
@@ -1316,36 +1418,37 @@ class _ReportsTabViewState extends State<_ReportsTabView>
                   return Theme(
                     data: Theme.of(context).copyWith(
                       colorScheme: const ColorScheme.dark(
-                        primary: AppColors.primary,
-                        onPrimary: AppColors.background,
-                        surface: AppColors.surface,
+                        primary: AppColors.emeraldBright,
+                        onPrimary: Colors.black,
+                        surface: AppColors.card,
                         onSurface: AppColors.textPrimary,
-                        outline: AppColors.surfaceLight,
-                        outlineVariant: AppColors.surfaceLight,
+                        outline: AppColors.borderSubtle,
+                        outlineVariant: AppColors.borderSubtle,
                       ),
-                      dialogBackgroundColor: AppColors.surface,
+                      dialogTheme: const DialogThemeData(backgroundColor: AppColors.card),
                       datePickerTheme: DatePickerThemeData(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.xl),
+                          side: const BorderSide(color: AppColors.borderSubtle, width: 1.0),
                         ),
                         headerHelpStyle: const TextStyle(
                           fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           color: AppColors.textSecondary,
                         ),
-                        dividerColor: AppColors.surfaceLight,
+                        dividerColor: AppColors.divider,
                       ),
                       textButtonTheme: TextButtonThemeData(
                         style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
+                          foregroundColor: AppColors.emeraldBright,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 14,
                           ),
                           textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.3,
                           ),
                         ),
                       ),
@@ -1361,61 +1464,59 @@ class _ReportsTabViewState extends State<_ReportsTabView>
               });
             }
           },
-          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.surfaceLight.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(AppRadius.lg),
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.2),
+                color: AppColors.borderSubtle,
+                width: 1.0,
               ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return ScaleTransition(
-                      scale: animation,
-                      child: FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Icon(
-                    _getTabIcon(),
-                    key: ValueKey<int>(_tabController.index),
-                    size: 16,
-                    color: AppColors.primary,
-                  ),
+                Icon(
+                  _getTabIcon(),
+                  size: 16,
+                  color: AppColors.emeraldBright,
                 ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 140,
-                  child: Text(
-                    _getPeriodText(),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.visible,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                const SizedBox(width: 8),
+                Text(
+                  _getPeriodText(),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                    fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
               ],
             ),
           ),
         ),
-        IconButton(
-          onPressed: _canGoNext() ? _nextPeriod : null,
-          icon: Icon(
-            Icons.chevron_right,
-            color: _canGoNext() ? AppColors.textPrimary : AppColors.textTertiary,
+        GestureDetector(
+          onTap: _canGoNext() ? _nextPeriod : null,
+          child: Opacity(
+            opacity: _canGoNext() ? 1.0 : 0.35,
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.cardElevated,
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(
+                  color: AppColors.borderSubtle,
+                  width: 1.0,
+                ),
+              ),
+              child: const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.textPrimary,
+                size: 20,
+              ),
+            ),
           ),
         ),
       ],
